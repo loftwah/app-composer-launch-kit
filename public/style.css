@@ -70,12 +70,11 @@ button,
   justify-content: center;
   gap: 12px;
 }
-button:hover,
+button:not(.secondary):not(.text-button):hover,
 .file-button:hover {
   background: var(--composer-action-hover);
 }
 button:active {
-  background: var(--composer-action-pressed);
   transform: translateY(1px);
 }
 button:disabled {
@@ -789,4 +788,14 @@ footer {
     height: 100%;
     object-fit: contain;
   }
+}
+
+button:not(.secondary):not(.text-button):active {
+  background: var(--composer-action-pressed);
+}
+button.secondary:hover {
+  background: var(--paper);
+}
+button.text-button:hover {
+  color: var(--composer-accent-hover);
 }
