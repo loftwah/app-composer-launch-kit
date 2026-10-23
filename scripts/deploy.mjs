@@ -43,11 +43,21 @@ const urls = output.match(
 );
 if (!urls?.length) throw Error("No verified static deployment URL returned.");
 const origin = urls[0];
-const release = await fetch(origin + "/release.json", {
-  headers: { "Cache-Control": "no-cache" },
-});
-if (!release.ok || (await release.json()).sourceSha !== sha)
-  throw Error("Served source identity did not match.");
+let verified = false;
+for (let attempt = 0; attempt < 6; attempt++) {
+  const release = await fetch(origin + "/release.json", {
+    headers: { "Cache-Control": "no-cache" },
+  });
+  if (release.ok && (await release.json()).sourceSha === sha) {
+    verified = true;
+    break;
+  }
+  if (attempt < 5) await new Promise((resolve) => setTimeout(resolve, 3000));
+}
+if (!verified)
+  throw Error(
+    "Served source identity did not match within the bounded propagation check.",
+  );
 for (const path of [
   "/",
   "/modules/client.js",
