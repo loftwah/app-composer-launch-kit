@@ -305,11 +305,19 @@ $("recipe").addEventListener("change", async () => {
     file = input.files?.[0];
   input.value = "";
   if (!file) return;
+  invalidate();
+  const mine = revision;
+  $("status").textContent = "Reading your recipe locally…";
   try {
     if (file.size > 32768) throw Error("Choose a recipe under 32 KiB.");
-    importValue(JSON.parse(await file.text()));
+    const text = await file.text();
+    if (mine !== revision) return;
+    importValue(JSON.parse(text));
   } catch (error) {
-    report(error);
+    if (mine === revision) {
+      report(error);
+      $("cancel").hidden = true;
+    }
   }
 });
 $("compare").onclick = async () => {

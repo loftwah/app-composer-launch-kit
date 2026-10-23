@@ -249,3 +249,64 @@ test("focused editor preserves exact seed text and exports only requested icons"
     assert.deepEqual(errors, []);
   });
 });
+
+test("a delayed recipe read cannot overwrite newer edits or a newer recipe", async () => {
+  await withRenderer(async ({ page, origin }) => {
+    page.setDefaultTimeout(10000);
+    await page.addInitScript(() => {
+      const original = File.prototype.text;
+      File.prototype.text = function () {
+        if (this.name === "older.json")
+          return new Promise((resolve) => {
+            window.finishOlderRead = () => original.call(this).then(resolve);
+          });
+        return original.call(this);
+      };
+    });
+    await page.goto(origin + "/profile.html");
+    await page
+      .getByText("Rendered locally · actual PNG decoded.", { exact: false })
+      .waitFor();
+    const older = recipe();
+    older.text.name = "Obsolete imported name";
+    const file = {
+      name: "older.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(older)),
+    };
+    await page.locator("#recipe").setInputFiles(file);
+    await page.waitForFunction(
+      () => typeof window.finishOlderRead === "function",
+    );
+    await page.getByLabel("Name", { exact: true }).fill("Latest owner edit");
+    await page.evaluate(() => window.finishOlderRead());
+    assert.equal(
+      await page.getByLabel("Name", { exact: true }).inputValue(),
+      "Latest owner edit",
+    );
+    await page.evaluate(() => {
+      window.finishOlderRead = undefined;
+    });
+    await page.locator("#recipe").setInputFiles(file);
+    await page.waitForFunction(
+      () => typeof window.finishOlderRead === "function",
+    );
+    const newer = recipe();
+    newer.text.name = "Newest chosen recipe";
+    await page.locator("#recipe").setInputFiles({
+      name: "newer.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(newer)),
+    });
+    await page.waitForFunction(
+      () =>
+        document.querySelector('input[name="name"]').value ===
+        "Newest chosen recipe",
+    );
+    await page.evaluate(() => window.finishOlderRead());
+    assert.equal(
+      await page.getByLabel("Name", { exact: true }).inputValue(),
+      "Newest chosen recipe",
+    );
+  });
+});
