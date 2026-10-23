@@ -99,7 +99,7 @@ function draw(
   );
   ctx.restore();
 }
-function wrap(
+export function wrap(
   ctx: CanvasRenderingContext2D,
   text: string,
   x: number,
@@ -110,7 +110,7 @@ function wrap(
   color: string,
 ): number {
   ctx.fillStyle = color;
-  // Shrink within a readable bound before eliding; split long Unicode words safely.
+  // Shrink within a readable bound; never silently discard the owner's exact text.
   let rows: string[] = [];
   for (let font = size; font >= 22; font -= 2) {
     ctx.font = `600 ${font}px "Space Grotesk", sans-serif`;
@@ -129,14 +129,10 @@ function wrap(
       break;
     }
   }
-  const clipped = rows.length > lines;
-  rows = rows.slice(0, lines);
-  if (clipped) {
-    let last = rows[lines - 1] ?? "";
-    while (last && ctx.measureText(last + "…").width > width)
-      last = Array.from(last).slice(0, -1).join("");
-    rows[lines - 1] = last + "…";
-  }
+  if (rows.length > lines)
+    throw Error(
+      "This text does not fit the selected social layout at a readable size. Shorten it or choose a more spacious composition; your exact text is preserved.",
+    );
   for (const line of rows) {
     ctx.fillText(line, x, y);
     y += size * 1.2;

@@ -221,3 +221,21 @@ test("independent public contract describes static browser-local capabilities tr
   assert.equal(cfg.d1_databases, undefined);
   assert.equal(cfg.r2_buckets, undefined);
 });
+
+test("social copy is never silently replaced by an ellipsis", async () => {
+  const { wrap } = await import("../dist/modules/processing.js"),
+    drawn = [],
+    ctx = {
+      font: "",
+      fillStyle: "",
+      measureText: (text) => ({ width: Array.from(text).length * 10 }),
+      fillText: (text) => drawn.push(text),
+    };
+  assert.throws(
+    () => wrap(ctx, "Long exact Unicode 夜の信号", 0, 0, 30, 24, 1, "#000000"),
+    /exact text is preserved/,
+  );
+  assert.deepEqual(drawn, []);
+  wrap(ctx, "Signal", 0, 0, 300, 24, 1, "#000000");
+  assert.deepEqual(drawn, ["Signal"]);
+});
