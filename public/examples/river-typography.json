@@ -1,0 +1,49 @@
+{
+  "format": "app-composer.profile-card",
+  "version": 1,
+  "profile": {
+    "id": "fictional-river",
+    "revision": "example-1"
+  },
+  "preset": {
+    "id": "typography",
+    "version": 1
+  },
+  "text": {
+    "name": "River Morgan",
+    "handle": "rivermorgan",
+    "description": "Good work. Open skies.\nA little room to explore.",
+    "alt": "River Morgan's profile card, introducing their creative work."
+  },
+  "colors": {
+    "background": "#f3efdf",
+    "ink": "#20231e",
+    "accent": "#326046"
+  },
+  "crops": {
+    "portrait": {
+      "fit": "cover",
+      "x": 50,
+      "y": 50,
+      "zoom": 100
+    },
+    "banner": {
+      "fit": "cover",
+      "x": 50,
+      "y": 50,
+      "zoom": 100
+    }
+  },
+  "assets": {},
+  "renderer": {
+    "id": "launch-kit-profile",
+    "version": "1.0.0",
+    "font": "Space Grotesk Latin 20261018",
+    "fontSha256": "61d00a1c57fcd7d4826c7a69cd85b61d15d133d5471d3c9c4731d70193d9f71f"
+  },
+  "output": {
+    "width": 1200,
+    "height": 630,
+    "type": "image/png"
+  }
+}

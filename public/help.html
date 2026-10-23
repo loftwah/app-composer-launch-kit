@@ -1,1 +1,101 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Launch Kit help</title><link rel="stylesheet" href="/style.css"><body><main><div class="intro"><h1>Your artwork,<br>on your device.</h1></div><p>Choose a PNG, JPEG or still WebP up to 10 MiB, 16 megapixels and 8192 pixels per side. Files are checked by format bytes and native decoding; extensions are not trusted. SVG, animated WebP and ICO are outside this version.</p><h2>Make the small version work</h2><p>Inspect the 16px preview at its actual size. A busy drawing can become unreadable. Try fill and crop, adjust the focus, reduce breathing room or choose simpler artwork. Warnings are guidance, not an aesthetic score.</p><h2>Adaptive icons</h2><p>Maskable outputs always use a solid background and separately contain the whole artwork inside the central safe circle. Phone touch icons also use a solid background. Ordinary icons can preserve transparency.</p><h2>Keep and reuse your work</h2><p>The ZIP contains nine PNGs, a web manifest, HTML markup, launch-kit.json and instructions. Original source bytes are excluded. Reopen the configuration and explicitly choose the matching source image to regenerate it. Output PNG bytes can differ between browser engines or versions.</p><h2>Privacy</h2><p>Image decoding, rendering, hashes and ZIP packaging run locally. No upload endpoint, analytics or remote codec is used. The sample and fonts are same-origin static assets. Theme preference alone is saved locally. Your source image, filename, EXIF and text are not added to URLs or network requests. Ordinary hosting access logs still apply to page requests. Composer adoption requires an explicit local file selection and review.</p><h2>Accessibility</h2><p>File selection works with keyboard and touch. Every range control has a label and supports arrow keys. Tab reaches all controls; focus stays visible in both themes. Reduced motion is respected. Layout reflows on phones and when zoomed. Physical iOS, screen-reader and native sharing acceptance remain separate from browser automation.</p><h2>Installation and sharing</h2><p>Review manifest name, paths, scope and start URL against your app. Replace the social image placeholder in head.html with the actual absolute HTTPS image URL. These files do not certify installation or native social-platform rendering. Use Link Check to inspect what your public app actually serves.</p><p><a href="/">Return to the editor</a> · <a href="https://github.com/loftwah/app-composer-launch-kit">Source and issue reporting</a> · <a href="/manifest.json">App contract</a></p></main></body></html>
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Launch Kit help</title
+  ><link rel="stylesheet" href="/style.css" />
+  <body>
+    <main>
+      <div class="intro">
+        <h1>Your artwork,<br />on your device.</h1>
+      </div>
+      <p>
+        Choose a PNG, JPEG or still WebP up to 10 MiB, 16 megapixels and 8192
+        pixels per side. Files are checked by format bytes and native decoding;
+        extensions are not trusted. SVG, animated WebP and ICO are outside this
+        version.
+      </p>
+      <h2>Make the small version work</h2>
+      <p>
+        Inspect the 16px preview at its actual size. A busy drawing can become
+        unreadable. Try fill and crop, adjust the focus, reduce breathing room
+        or choose simpler artwork. Warnings are guidance, not an aesthetic
+        score.
+      </p>
+      <h2>Adaptive icons</h2>
+      <p>
+        Maskable outputs always use a solid background and separately contain
+        the whole artwork inside the central safe circle. Phone touch icons also
+        use a solid background. Ordinary icons can preserve transparency.
+      </p>
+      <h2>Keep and reuse your work</h2>
+      <p>
+        The ZIP contains nine PNGs, a web manifest, HTML markup, launch-kit.json
+        and instructions. Original source bytes are excluded. Reopen the
+        configuration and explicitly choose the matching source image to
+        regenerate it. Output PNG bytes can differ between browser engines or
+        versions.
+      </p>
+      <h2>Privacy</h2>
+      <p>
+        Image decoding, rendering, hashes and ZIP packaging run locally. No
+        upload endpoint, analytics or remote codec is used. The sample and fonts
+        are same-origin static assets. Theme preference alone is saved locally.
+        Your source image, filename, EXIF and text are not added to URLs or
+        network requests. Ordinary hosting access logs still apply to page
+        requests. Composer adoption requires an explicit local file selection
+        and review.
+      </p>
+      <h2>Accessibility</h2>
+      <p>
+        File selection works with keyboard and touch. Every range control has a
+        label and supports arrow keys. Tab reaches all controls; focus stays
+        visible in both themes. Reduced motion is respected. Layout reflows on
+        phones and when zoomed. Physical iOS, screen-reader and native sharing
+        acceptance remain separate from browser automation.
+      </p>
+      <h2>Installation and sharing</h2>
+      <p>
+        Review manifest name, paths, scope and start URL against your app.
+        Replace the social image placeholder in head.html with the actual
+        absolute HTTPS image URL. These files do not certify installation or
+        native social-platform rendering. Use Link Check to inspect what your
+        public app actually serves.
+      </p>
+      <p>
+        <a href="/">Return to the editor</a> ·
+        <a href="https://github.com/loftwah/app-composer-launch-kit"
+          >Source and issue reporting</a
+        >
+        · <a href="/manifest.json">App contract</a>
+      </p>
+      <section>
+        <h2>One profile card, made locally</h2>
+        <p>
+          <a href="/profile.html">Open the focused profile editor</a> for
+          text-only, portrait, banner or combined designs. Choose a treatment,
+          compare up to three candidates and inspect actual encoded PNG bytes at
+          full or feed size. Recipes exclude original images; reopening asks for
+          matching source files. Downloading selects a local output; applying a
+          draft, publishing and verifying the public result are deliberate later
+          steps.
+        </p>
+        <p>
+          After dependencies are installed, the repository command
+          <code
+            >pnpm render public/examples/river-typography.json
+            output/river</code
+          >
+          uses the same renderer with external networking blocked. A local
+          server loads all assets and the bundled font; hosted initial loading
+          requires a connection.
+          <a
+            href="https://github.com/loftwah/app-composer-launch-kit/blob/main/docs/profile-cards.md"
+            >Read the exact contract and command</a
+          >.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

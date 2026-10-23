@@ -1,0 +1,55 @@
+{
+  "format": "app-composer.profile-card",
+  "version": 1,
+  "profile": {
+    "id": "fictional-field-notes",
+    "revision": "example-1"
+  },
+  "preset": {
+    "id": "editorial",
+    "version": 1
+  },
+  "text": {
+    "name": "Field Notes",
+    "handle": "@fieldnotes",
+    "description": "Small journeys. Wide horizons.",
+    "alt": "Field Notes, a fictional walking journal, with a geometric green landscape."
+  },
+  "colors": {
+    "background": "#f7ecd7",
+    "ink": "#24272b",
+    "accent": "#934025"
+  },
+  "crops": {
+    "portrait": {
+      "fit": "cover",
+      "x": 50,
+      "y": 50,
+      "zoom": 100
+    },
+    "banner": {
+      "fit": "cover",
+      "x": 50,
+      "y": 50,
+      "zoom": 100
+    }
+  },
+  "assets": {
+    "banner": {
+      "path": "field-landscape.png",
+      "sha256": "ec68ed6d045d439a32184076ff528674b59af6dfe11fa4c8a18230841e1e9f6f",
+      "included": false
+    }
+  },
+  "renderer": {
+    "id": "launch-kit-profile",
+    "version": "1.0.0",
+    "font": "Space Grotesk Latin 20261018",
+    "fontSha256": "61d00a1c57fcd7d4826c7a69cd85b61d15d133d5471d3c9c4731d70193d9f71f"
+  },
+  "output": {
+    "width": 1200,
+    "height": 630,
+    "type": "image/png"
+  }
+}

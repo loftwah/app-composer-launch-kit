@@ -799,3 +799,37 @@ button.secondary:hover {
 button.text-button:hover {
   color: var(--composer-accent-hover);
 }
+
+[hidden] {
+  display: none !important;
+}
+.task-nav {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-top: 24px;
+  font-size: 14px;
+}
+
+.profile-entry {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.profile-entry img {
+  width: 100%;
+  display: block;
+  margin-bottom: 12px;
+}
+.profile-entry span {
+  font-size: 13px;
+}
+@media (max-width: 730px) {
+  .profile-entry {
+    gap: 12px;
+  }
+  .profile-entry span {
+    font-size: 11px;
+  }
+}

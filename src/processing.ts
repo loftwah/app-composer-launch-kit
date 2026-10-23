@@ -139,7 +139,7 @@ export function wrap(
   }
   return y;
 }
-async function encode(
+export async function encodeRaster(
   canvas: HTMLCanvasElement,
   name: string,
   purpose: string,
@@ -185,6 +185,7 @@ export async function generate(
   input: Settings,
   signal: AbortSignal,
   progress: (value: string) => void,
+  operation: "package" | "icons" = "package",
 ): Promise<Asset[]> {
   const s = validateSettings(input),
     assets: Asset[] = [];
@@ -215,13 +216,16 @@ export async function generate(
       output.maskable ? s.maskSpacing : s.spacing,
     );
     try {
-      assets.push(await encode(canvas, output.name, output.purpose, signal));
+      assets.push(
+        await encodeRaster(canvas, output.name, output.purpose, signal),
+      );
     } finally {
       canvas.width = canvas.height = 1;
     }
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
   signal.throwIfAborted();
+  if (operation === "icons") return assets;
   progress("Composing your social image…");
   const canvas = document.createElement("canvas");
   canvas.width = 1200;
@@ -250,7 +254,7 @@ export async function generate(
   }
   try {
     assets.push(
-      await encode(
+      await encodeRaster(
         canvas,
         "social-1200x630.png",
         "Shared link · 1200 × 630",
@@ -274,12 +278,20 @@ export function packageFiles(
     "site.webmanifest",
     encodeText(JSON.stringify(manifest(s), null, 2) + "\n"),
   );
+  const hasSocial = assets.some((a) => a.name === "social-1200x630.png");
   files.set(
     "head.html",
     encodeText(
       `<link rel="icon" href="./favicon-32.png" type="image/png" sizes="32x32">\n<link rel="icon" href="./favicon-16.png" type="image/png" sizes="16x16">\n<link rel="icon" href="./favicon-48.png" type="image/png" sizes="48x48">\n<link rel="apple-touch-icon" href="./apple-touch-icon.png">\n<link rel="manifest" href="./site.webmanifest">\n<meta name="theme-color" content="${s.accent}">\n<meta property="og:title" content="${escapeHTML(s.title)}">\n<meta property="og:description" content="${escapeHTML(s.subtitle)}">\n<!-- Set an absolute HTTPS social image URL after choosing the deployed destination. -->\n<meta property="og:image" content="REPLACE_WITH_DEPLOYED_ORIGIN/social-1200x630.png">\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n<meta property="og:image:type" content="image/png">\n<meta property="og:image:alt" content="${escapeHTML(s.alt)}">\n`,
     ),
   );
+  if (!hasSocial)
+    files.set(
+      "head.html",
+      encodeText(
+        `<link rel="icon" href="./favicon-32.png" type="image/png" sizes="32x32">\n<link rel="apple-touch-icon" href="./apple-touch-icon.png">\n<link rel="manifest" href="./site.webmanifest">\n<meta name="theme-color" content="${s.accent}">\n`,
+      ),
+    );
   files.set(
     "launch-kit.json",
     encodeText(
