@@ -1,7 +1,7 @@
 // MIT. Local-only release from reviewed clean pushed main to the declared static target.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { createHash } from "node:crypto";
+import { verifyStaticAssets } from "./verify-static-assets.mjs";
 const run = (command, args, options = {}) =>
   execFileSync(command, args, { encoding: "utf8", ...options });
 const git = (args) => run("git", args).trim(),
@@ -44,22 +44,8 @@ const urls = output.match(
 );
 if (!urls?.length) throw Error("No verified static deployment URL returned.");
 const origin = urls[0];
-let verified = false;
-for (let attempt = 0; attempt < 6; attempt++) {
-  const release = await fetch(origin + "/release.json", {
-    headers: { "Cache-Control": "no-cache" },
-  });
-  if (release.ok && (await release.json()).sourceSha === sha) {
-    verified = true;
-    break;
-  }
-  if (attempt < 5) await new Promise((resolve) => setTimeout(resolve, 3000));
-}
-if (!verified)
-  throw Error(
-    "Served source identity did not match within the bounded propagation check.",
-  );
-for (const path of [
+const paths = [
+  "/release.json",
   "/",
   "/modules/client.js",
   "/modules/processing.js",
@@ -70,37 +56,28 @@ for (const path of [
   "/presets.json",
   "/brand/night-signal-icon-32.png",
   "/brand/night-signal-icon-180.png",
-]) {
-  const response = await fetch(origin + path);
-  if (!response.ok) throw Error("Missing served output " + path);
-}
-for (const name of [
-  "river-typography",
-  "night-signal-music",
-  "field-notes-editorial",
-  "night-signal-artwork",
-]) {
-  const path = `/examples/${name}.png`,
-    response = await fetch(origin + path);
-  const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
-  if (
-    !response.ok ||
-    response.headers.get("content-type")?.split(";")[0] !== "image/png" ||
-    digest(new Uint8Array(await response.arrayBuffer())) !==
-      digest(readFileSync("dist" + path))
-  )
-    throw Error("Served profile card differs from the reviewed PNG: " + path);
-}
-const page = await fetch(origin + "/");
-if (
-  !page.headers.get("content-security-policy")?.includes("connect-src 'self'")
-)
-  throw Error("Static CSP boundary missing.");
+  ...[
+    "river-typography",
+    "night-signal-music",
+    "field-notes-editorial",
+    "night-signal-artwork",
+  ].map((name) => `/examples/${name}.png`),
+];
+const verified = await verifyStaticAssets({
+  origin,
+  assets: paths.map((path) => ({
+    path,
+    bytes: readFileSync(path === "/" ? "dist/index.html" : "dist" + path),
+    ...(path.endsWith(".png") ? { type: "image/png" } : {}),
+    ...(path === "/" ? { csp: true } : {}),
+  })),
+});
 console.log(
   JSON.stringify({
     sourceSha: sha,
     origin,
     processing: "browser-local",
+    verifiedAssets: verified,
     verified: new Date().toISOString(),
   }),
 );

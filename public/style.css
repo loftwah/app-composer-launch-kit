@@ -199,11 +199,16 @@ aside {
 }
 .source .file-button {
   width: 100%;
+}
+.file-button {
   position: relative;
 }
 .file-button input {
   position: absolute;
   inset: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
   opacity: 0;
   cursor: pointer;
   width: 100%;
@@ -247,7 +252,10 @@ label {
   margin-bottom: 16px;
   color: var(--muted);
 }
-input:not([type="checkbox"]):not([type="range"]):not([type="color"]),
+input:not([type="checkbox"]):not([type="range"]):not([type="color"]):not(
+    [type="file"]
+  ),
+input[type="file"]:not(.file-button input),
 textarea,
 select {
   display: block;
