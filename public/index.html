@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Launch Kit — artwork into an app identity</title>
+    <meta
+      name="description"
+      content="Prepare icons, install artwork and social images in your browser. Inspect the actual files, export a portable package and deliberately bring it into App Composer."
+    />
+    <link
+      rel="preload"
+      href="/brand/space-latin-20261018.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/brand/launcher.css" />
+    <link rel="icon" href="/brand/night-signal-icon-32.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/brand/night-signal-icon-180.png" />
+    <meta
+      property="og:title"
+      content="Launch Kit — artwork into an app identity"
+    />
+    <meta
+      property="og:description"
+      content="Local artwork. Intentional icons. A package you can use."
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:image"
+      content="https://composer.loftwah.com/launch-kit/example/social-1200x630.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Night Signal, a fictional radio station identity prepared with Launch Kit."
+    />
+    <script type="module" src="/modules/client.js"></script>
+    <script type="module" src="/brand/launcher.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#workspace">Skip to the editor</a>
+    <header>
+      <a class="wordmark" href="/">Launch Kit<span>by App Composer</span></a>
+      <nav class="app-tools" aria-label="App controls">
+        <button type="button" data-open-apps aria-haspopup="dialog">
+          Apps <kbd>⌘ K</kbd></button
+        ><button
+          id="theme"
+          class="secondary"
+          aria-label="Dark theme"
+          aria-pressed="true"
+          title="Change theme"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+            />
+          </svg>
+        </button>
+      </nav>
+    </header>
+    <main id="workspace">
+      <div class="intro">
+        <div>
+          <h1>Give your artwork<br />a place to go.</h1>
+          <p>
+            Make icons and a shared-link image. Inspect the files before they
+            leave your browser.
+          </p>
+        </div>
+        <div class="primary-actions">
+          <button id="export" disabled>
+            Download package <span aria-hidden="true">↓</span></button
+          ><a href="#package" class="quiet">Inspect the package</a>
+        </div>
+      </div>
+      <div
+        class="mobile-preview"
+        data-image="social-1200x630.png"
+        aria-label="Current generated social image"
+      ></div>
+      <div class="workspace">
+        <aside aria-label="Identity controls">
+          <section id="drop" class="source">
+            <div>
+              <h2>Your artwork</h2>
+              <p id="source-info">Loading the fictional Night Signal sample…</p>
+            </div>
+            <label class="file-button"
+              >Choose an image<input
+                id="source"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+            /></label>
+            <p class="small">
+              Or drop it here · PNG, JPEG, WebP · up to 10 MiB / 16 MP
+            </p>
+            <button type="button" id="sample" class="text-button">
+              Use the fictional sample
+            </button>
+            <p class="privacy">
+              Your source stays on this device. No account or upload.
+            </p>
+          </section>
+          <form id="controls">
+            <fieldset>
+              <legend>Icon treatment</legend>
+              <label
+                >Fit<select name="fit">
+                  <option value="contain">Keep the whole image</option>
+                  <option value="cover">Fill and crop</option>
+                </select></label
+              >
+              <label
+                >Crop zoom<input
+                  type="range"
+                  name="zoom"
+                  min="100"
+                  max="300"
+                  value="100"
+              /></label>
+              <div class="paired">
+                <label
+                  >Horizontal focus<input
+                    type="range"
+                    name="x"
+                    min="0"
+                    max="100"
+                    value="50" /></label
+                ><label
+                  >Vertical focus<input
+                    type="range"
+                    name="y"
+                    min="0"
+                    max="100"
+                    value="50"
+                /></label>
+              </div>
+              <label
+                >Icon breathing room<input
+                  type="range"
+                  name="spacing"
+                  min="0"
+                  max="40"
+                  value="12" /></label
+              ><label
+                >Maskable breathing room<input
+                  type="range"
+                  name="maskSpacing"
+                  min="22"
+                  max="40"
+                  value="24"
+              /></label>
+              <p class="small">
+                Adaptive icons keep the whole artwork within the central safe
+                circle and use a solid background.
+              </p>
+              <label class="check"
+                ><input type="checkbox" name="transparent" checked />Keep
+                ordinary icons transparent</label
+              >
+            </fieldset>
+            <fieldset>
+              <legend>Identity colours</legend>
+              <div class="colours">
+                <label
+                  >Paper<input
+                    type="color"
+                    name="background"
+                    value="#f1ead7" /></label
+                ><label
+                  >Accent<input
+                    type="color"
+                    name="accent"
+                    value="#fc5b05" /></label
+                ><label
+                  >Ink<input type="color" name="ink" value="#211d30"
+                /></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Your shared link</legend>
+              <label
+                >Title<input
+                  name="title"
+                  maxlength="80"
+                  value="Night Signal"
+                  required /></label
+              ><label
+                >Subtitle<input
+                  name="subtitle"
+                  maxlength="160"
+                  value="Good company after dark." /></label
+              ><label
+                >Image description<textarea name="alt" maxlength="300" rows="2">
+A purple analogue radio tuning in beside a curious moth.</textarea></label
+              ><label
+                >Composition<select name="layout">
+                  <option value="split">Signal · split colour</option>
+                  <option value="poster">After hours · open paper</option>
+                  <option value="band">On air · title band</option>
+                </select></label
+              >
+            </fieldset>
+          </form>
+          <details class="reopen">
+            <summary>Reopen a configuration</summary>
+            <p class="small">
+              Choose launch-kit.json, then the original source image. Source
+              bytes are never included automatically. A mismatched image is
+              refused.
+            </p>
+            <label
+              >Launch Kit configuration<input
+                id="config"
+                type="file"
+                accept="application/json"
+            /></label>
+          </details>
+        </aside>
+        <div class="preview-column">
+          <div class="feedback">
+            <p id="status" role="status" aria-live="polite">
+              Preparing your identity…
+            </p>
+            <button id="cancel" class="text-button" type="button">
+              Cancel
+            </button>
+          </div>
+          <ul id="warnings" class="warnings" aria-label="Output guidance"></ul>
+          <section class="identity-preview" aria-labelledby="preview-heading">
+            <div class="section-heading">
+              <h2 id="preview-heading">See where it lands.</h2>
+              <label class="check"
+                ><input type="checkbox" id="surround" />Light
+                surroundings</label
+              >
+            </div>
+            <div class="surroundings" id="surroundings">
+              <div class="browser-strip">
+                <span class="browser-icon" data-image="favicon-16.png"></span
+                ><span id="tab-title">Night Signal</span
+                ><span class="tab-close" aria-hidden="true">×</span>
+              </div>
+              <div class="app-context">
+                <div class="app-stamp" data-image="icon-192.png"></div>
+                <div>
+                  <h3 id="context-title">Night Signal</h3>
+                  <p id="context-subtitle">Good company after dark.</p>
+                  <span class="context-label">App identity preview</span>
+                </div>
+              </div>
+              <div class="tiny-strip">
+                <div>
+                  <span data-image="favicon-16.png"></span
+                  ><small>16px tab</small>
+                </div>
+                <div>
+                  <span data-image="favicon-32.png"></span
+                  ><small>32px tab</small>
+                </div>
+                <div>
+                  <span data-image="favicon-48.png"></span
+                  ><small>48px tab</small>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section class="install-preview" aria-labelledby="install-heading">
+            <h2 id="install-heading">At home on a phone.</h2>
+            <div class="icon-line">
+              <figure>
+                <div
+                  class="device-icon rounded"
+                  data-image="apple-touch-icon.png"
+                ></div>
+                <figcaption>Touch icon</figcaption>
+              </figure>
+              <figure>
+                <div class="device-icon" data-image="icon-192.png"></div>
+                <figcaption>Ordinary icon</figcaption>
+              </figure>
+              <figure>
+                <div
+                  class="device-icon circle"
+                  data-image="maskable-192.png"
+                ></div>
+                <figcaption>Round mask</figcaption>
+              </figure>
+              <figure>
+                <div
+                  class="device-icon squircle"
+                  data-image="maskable-512.png"
+                ></div>
+                <figcaption>Adaptive mask</figcaption>
+              </figure>
+            </div>
+            <details>
+              <summary>Inspect the maskable safe circle</summary>
+              <div class="safe-preview" data-image="maskable-512.png"></div>
+              <p class="small">
+                The dashed circle marks the central 80% diameter. Browsers may
+                crop outside it. These previews do not certify installation.
+              </p>
+            </details>
+          </section>
+          <section aria-labelledby="social-heading" class="social-preview">
+            <div class="section-heading">
+              <h2 id="social-heading">A link worth opening.</h2>
+              <span class="small">1200 × 630 PNG</span>
+            </div>
+            <div class="social-full" data-image="social-1200x630.png"></div>
+            <div class="feed-preview">
+              <div class="social-phone" data-image="social-1200x630.png"></div>
+              <p class="small">
+                Phone feed size · actual exported image. Native platform
+                rendering remains separate.
+              </p>
+            </div>
+          </section>
+          <section id="package" class="package">
+            <h2>Take the actual files.</h2>
+            <p>
+              Nine checked PNGs, a web manifest, HTML markup, reusable
+              configuration and installation notes. Original source bytes and
+              location metadata stay out.
+            </p>
+            <div id="asset-list"></div>
+            <details>
+              <summary>Inspect configuration and asset hashes</summary>
+              <pre id="package-view"></pre>
+            </details>
+            <div class="actions">
+              <button id="export-bottom" disabled>Download one ZIP</button
+              ><button id="continue" class="secondary" disabled>
+                Continue into Composer
+              </button>
+            </div>
+            <p id="export-status" class="small" role="status"></p>
+            <p class="small">
+              Composer import is deliberate. Review the downloaded package there
+              before adopting branding. Existing drafts stay intact.
+            </p>
+            <a href="https://composer.loftwah.com/launch-kit/example/"
+              >Explore the fictional reference app</a
+            >
+            ·
+            <a href="https://share.loftwah.com/"
+              >Inspect a served page with Link Check</a
+            >
+          </section>
+        </div>
+      </div>
+    </main>
+    <footer>
+      <p>
+        Launch Kit · browser-local processing ·
+        <a href="https://github.com/loftwah/app-composer-launch-kit"
+          >MIT source</a
+        >
+        · <a href="/help.html">Help, privacy &amp; accessibility</a>
+      </p>
+      <p>
+        Night Signal is a fictional, reusable sample. It does not represent a
+        customer.
+      </p>
+    </footer>
+    <dialog
+      id="app-navigation"
+      aria-labelledby="app-navigation-title"
+      data-composer-home="https://composer.loftwah.com/"
+    >
+      <button type="button" data-close-apps autofocus>Close</button>
+      <h2 id="app-navigation-title">Apps and tasks</h2>
+      <label>Find an app<input type="search" /></label>
+      <p role="status"></p>
+      <ul>
+        <li data-destination>
+          <a href="https://guestbook.loftwah.com">Here / there</a>
+        </li>
+        <li data-destination>
+          <a href="https://showcase.loftwah.com">Linkarooie</a>
+        </li>
+        <li data-destination>
+          <a href="https://share.loftwah.com">Link Check</a>
+        </li>
+        <li data-destination>
+          <a href="https://ready.loftwah.com">Hello World</a>
+        </li>
+        <li data-destination>
+          <a href="https://ai.loftwah.com">Carry / forward</a>
+        </li>
+        <li data-destination><a href="/" aria-current="page">Launch Kit</a></li>
+      </ul>
+    </dialog>
+    <noscript
+      ><p>
+        Launch Kit needs JavaScript to process images locally. No image
+        processing request is sent to a server.
+      </p></noscript
+    >
+  </body>
+</html>

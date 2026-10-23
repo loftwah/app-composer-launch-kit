@@ -1,0 +1,23 @@
+import { execFileSync } from "node:child_process";
+import { cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+rmSync("dist", { recursive: true, force: true });
+mkdirSync("dist");
+cpSync("public", "dist", { recursive: true });
+execFileSync("node", ["node_modules/typescript/bin/tsc"], { stdio: "inherit" });
+let sha = "uncommitted";
+try {
+  sha = execFileSync("git", ["rev-parse", "HEAD"], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"],
+  }).trim();
+} catch {}
+writeFileSync(
+  "dist/release.json",
+  JSON.stringify({
+    app: "launch-kit",
+    version: "1.0.0",
+    sourceSha: sha,
+    processing: "browser-local",
+    runtime: "static-assets",
+  }) + "\n",
+);

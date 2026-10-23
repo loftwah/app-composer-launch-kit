@@ -1,0 +1,17 @@
+{
+  "name": "app-composer-launch-kit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.8.1",
+  "engines": { "node": ">=22 <23" },
+  "scripts": {
+    "dev": "pnpm build && wrangler dev --port 4393",
+    "check": "tsc --noEmit && prettier --check src scripts tests public/index.html public/style.css && pnpm test",
+    "format": "prettier --write src scripts tests public/index.html public/style.css",
+    "test": "node scripts/build.mjs && node --test tests/*.test.mjs",
+    "build": "node scripts/build.mjs",
+    "deploy": "node scripts/deploy.mjs"
+  },
+  "devDependencies": { "typescript": "6.0.3", "prettier": "3.9.10", "wrangler": "4.143.1", "pngjs": "7.0.0" }
+}

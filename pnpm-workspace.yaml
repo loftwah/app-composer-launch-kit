@@ -1,0 +1,6 @@
+allowBuilds:
+  esbuild: true
+  workerd: true
+overrides:
+  workerd: 1.20261013.1
+  'undici@>=7.0.0 <7.29.1': 7.29.1

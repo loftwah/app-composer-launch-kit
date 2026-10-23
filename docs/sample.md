@@ -1,0 +1,3 @@
+# Fictional sample provenance
+
+23 October 2026, Codex built-in image generation, transparent PNG 1254×1254. Original illustration requested for fictional Night Signal; no existing owner identity used as input or replacement. Prompt: a squat midnight-purple analogue radio receiver with one huge cream tuning dial, lime signal lamp and short orange antenna bent toward an inquisitive moth; confident dark ink, flat cel colours, bold central silhouette; transparent background, no lettering, logos, mascot eyes or glossy 3D. Generated master is public/brand/night-signal-20261023.png. Optical icon derivatives come from the actual browser-exported Launch Kit package. Agent-selected sample, not MP artistic acceptance.

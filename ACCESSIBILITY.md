@@ -1,0 +1,3 @@
+# Accessibility
+
+Native labelled inputs support keyboard, touch and file selection as an alternative to drag/drop. Status announcements describe processing, cancellation and failure. Dark/light themes retain visible focus and readable action text. Layout reflows on narrow screens and zoom; reduced-motion preference is supported. Exported image alt text is editable exact text. Browser automation does not establish screen-reader, physical-iPhone, native sharing or install acceptance. Report a problem with browser/device and the action affected; do not attach private source art without permission.
