@@ -21,3 +21,9 @@ writeFileSync(
     runtime: "static-assets",
   }) + "\n",
 );
+
+writeFileSync(
+  "dist/build.json",
+  JSON.stringify({ app: "launch-kit", sha, contract: 1, dataVersion: 1 }) +
+    "\n",
+);

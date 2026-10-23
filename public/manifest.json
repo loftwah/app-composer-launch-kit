@@ -1,0 +1,14 @@
+{
+  "id": "launch-kit",
+  "name": "Launch Kit",
+  "contract": 1,
+  "version": "1.0.0",
+  "runtime": "cloudflare-static-assets",
+  "dataVersion": 1,
+  "routes": ["/launch-kit"],
+  "capabilities": ["identity:prepare-local", "identity:export-local"],
+  "configuration": { "format": "app-composer.launch-kit", "version": 1 },
+  "source": "https://github.com/loftwah/app-composer-launch-kit",
+  "processing": "browser-local",
+  "composition": "explicit-local-package-adoption"
+}

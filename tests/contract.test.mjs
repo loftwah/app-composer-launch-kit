@@ -206,3 +206,18 @@ test("Composer-owned action roles consume the independently copied composer.pale
   for (const role of ["action", "accent", "on-action", "focus"])
     assert.ok(ui.includes("var(--composer-" + role + ")"));
 });
+
+test("independent public contract describes static browser-local capabilities truthfully", () => {
+  const c = JSON.parse(readFileSync("public/manifest.json"));
+  assert.equal(c.contract, 1);
+  assert.equal(c.runtime, "cloudflare-static-assets");
+  assert.equal(c.processing, "browser-local");
+  assert.deepEqual(c.capabilities, [
+    "identity:prepare-local",
+    "identity:export-local",
+  ]);
+  const cfg = JSON.parse(readFileSync("wrangler.jsonc"));
+  assert.equal(cfg.main, undefined);
+  assert.equal(cfg.d1_databases, undefined);
+  assert.equal(cfg.r2_buckets, undefined);
+});
