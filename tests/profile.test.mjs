@@ -310,3 +310,56 @@ test("a delayed recipe read cannot overwrite newer edits or a newer recipe", asy
     );
   });
 });
+
+test("profile controls receive real pointer clicks and recipe picker stays inside its label", async () => {
+  await withRenderer(async ({ page, origin }) => {
+    page.setDefaultTimeout(2000);
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(origin + "/profile.html?example=night-signal-music");
+      await page
+        .getByText("Rendered locally · actual PNG decoded.", { exact: false })
+        .waitFor();
+      const name = page.getByLabel("Name", { exact: true });
+      await name.click();
+      assert.equal(
+        await name.evaluate((node) => node === document.activeElement),
+        true,
+      );
+      await name.press("End");
+      await name.pressSequentially(" live");
+      assert.equal(await name.inputValue(), "Night Signal live");
+      await page.getByRole("button", { name: /Face \/ forward/ }).click();
+      assert.equal(
+        await page
+          .getByRole("button", { name: /Face \/ forward/ })
+          .getAttribute("aria-pressed"),
+        "true",
+      );
+      const picker = page.locator("#recipe"),
+        label = page.locator("label.file-button").filter({ has: picker });
+      const inputBounds = await picker.boundingBox(),
+        labelBounds = await label.boundingBox();
+      assert.ok(inputBounds && labelBounds);
+      for (const key of ["x", "y"])
+        assert.ok(
+          Math.abs(inputBounds[key] - labelBounds[key]) <= 2,
+          `${width}px ${key} picker is inside its own label`,
+        );
+      assert.ok(inputBounds.width <= labelBounds.width + 2);
+      assert.ok(inputBounds.height <= labelBounds.height + 2);
+      const chooserPromise = page.waitForEvent("filechooser");
+      await label.click();
+      const chooser = await chooserPromise;
+      await chooser.setFiles({
+        name: "chosen.json",
+        mimeType: "application/json",
+        buffer: Buffer.from(JSON.stringify(recipe())),
+      });
+      await page.waitForFunction(
+        () =>
+          document.querySelector('input[name="name"]').value === "River Morgan",
+      );
+    }
+  });
+});
