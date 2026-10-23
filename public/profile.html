@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Profile cards · Launch Kit</title>
+    <meta
+      name="description"
+      content="Make a profile card from exact text and your approved local artwork. Inspect the actual PNG, compare treatments and deliberately publish."
+    />
+    <link rel="icon" href="/brand/night-signal-icon-32.png" />
+    <link rel="stylesheet" href="/brand/launcher.css" />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/profile.css" />
+    <script type="module" src="/modules/profile-client.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#editor">Skip to editor</a>
+    <header>
+      <a class="wordmark" href="/"
+        >Launch Kit<span>Your identity. Ready to share.</span></a
+      >
+      <nav aria-label="Task">
+        <a href="/profile.html" aria-current="page">Profile card</a
+        ><a href="/?operation=icons">App icons</a><a href="/">Full package</a
+        ><button class="secondary" id="theme" aria-label="Toggle light theme">
+          Theme
+        </button>
+      </nav>
+    </header>
+    <main id="editor">
+      <section class="intro">
+        <div>
+          <h1>A profile worth opening.</h1>
+          <p>
+            Your exact words, an intentional treatment and artwork you already
+            love. Made on this device. Inspect the real file before you choose
+            it.
+          </p>
+        </div>
+        <a href="#presets">Choose a treatment</a>
+      </section>
+      <div class="profile-workspace">
+        <section class="live-preview" aria-labelledby="preview-title">
+          <div class="section-heading">
+            <h2 id="preview-title">Your actual shared-link image</h2>
+            <span class="small">1200 × 630 PNG</span>
+          </div>
+          <div id="preview" class="social-full"></div>
+          <div class="feedback">
+            <p id="status" role="status" aria-live="polite">
+              Preparing your first card…
+            </p>
+            <button id="cancel" class="text-button" hidden>Cancel</button>
+          </div>
+          <div class="actions">
+            <button id="download" disabled>Download this card</button
+            ><button class="secondary" id="export-recipe" disabled>
+              Save recipe</button
+            ><button class="secondary" id="export-profile" disabled>
+              Download adoption ZIP
+            </button>
+          </div>
+          <p class="small" id="export-status" role="status">
+            Rendered locally → selected for export → apply to draft → publish →
+            verify served result.
+          </p>
+          <details>
+            <summary>Inspect at full size and feed size</summary>
+            <a id="full" target="_blank" rel="noopener"
+              >Open actual 1200px PNG</a
+            >
+            <div id="feed" class="social-phone"></div>
+            <p class="small">
+              300px feed preview of the same encoded bytes you download.
+            </p>
+          </details>
+          <details>
+            <summary>Recipe, rendering identity and output hash</summary>
+            <pre id="technical"></pre>
+          </details>
+          <a id="return" hidden>Return to your profile</a>
+        </section>
+        <section class="profile-controls" aria-label="Card controls">
+          <form id="profile-controls">
+            <fieldset>
+              <legend>Your public words</legend>
+              <label>Name<input name="name" maxlength="100" required /></label
+              ><label
+                >Handle or website<input name="handle" maxlength="100" /></label
+              ><label
+                >Introduction<textarea
+                  name="description"
+                  maxlength="240"
+                  rows="3"
+                ></textarea></label
+              ><label
+                >Image description<textarea
+                  name="alt"
+                  maxlength="500"
+                  rows="2"
+                ></textarea>
+              </label>
+            </fieldset>
+            <fieldset id="presets">
+              <legend>Choose a treatment</legend>
+              <div id="preset-list"></div>
+              <p class="small" id="preset-guidance"></p>
+              <details>
+                <summary>Instructions for a person or agent</summary>
+                <button type="button" class="secondary" id="copy-instructions">
+                  Copy rendering instructions
+                </button>
+                <pre id="agent-instructions"></pre>
+                <a href="/presets.json">Machine-readable catalogue</a>
+              </details>
+              <button type="button" id="compare" class="secondary">
+                Compare three treatments
+              </button>
+              <p class="small">
+                The same words and selected artwork, rendered locally. Select
+                one to keep editing.
+              </p>
+              <div id="comparisons"></div>
+            </fieldset>
+            <fieldset>
+              <legend>Your artwork, if you want it</legend>
+              <p class="small">
+                Text alone works. Portraits show a person; banners show a scene
+                or illustration. Nothing is uploaded.
+              </p>
+              <label
+                >Portrait or avatar<input
+                  id="portrait"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+              /></label>
+              <p id="portrait-info" class="small">No portrait selected.</p>
+              <button type="button" id="remove-portrait" class="text-button">
+                Remove portrait</button
+              ><label
+                >Banner, cover or illustration<input
+                  id="banner"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+              /></label>
+              <p id="banner-info" class="small">No banner selected.</p>
+              <button type="button" id="remove-banner" class="text-button">
+                Remove banner
+              </button>
+              <details>
+                <summary>Crop, focal position and colours</summary>
+                <div id="crop-controls"></div>
+                <div class="colours">
+                  <label
+                    >Background<input type="color" name="background" /></label
+                  ><label>Text<input type="color" name="ink" /></label
+                  ><label>Accent<input type="color" name="accent" /></label>
+                </div>
+              </details>
+            </fieldset>
+          </form>
+          <label class="file-button secondary"
+            >Open recipe or profile snapshot<input
+              id="recipe"
+              type="file"
+              accept="application/json,.json"
+          /></label>
+          <p class="small">
+            Recipes contain settings and source hashes. Original images are
+            excluded; choose matching files again.
+          </p>
+        </section>
+      </div>
+      <section class="finished">
+        <h2>Three starting points, already finished.</h2>
+        <p>
+          Fictional examples made by this renderer. Open one to edit its words
+          and treatment.
+        </p>
+        <div class="example-gallery">
+          <button class="example" data-example="river-typography">
+            <img
+              src="/examples/river-typography.png"
+              alt="River Morgan text-first profile card"
+            /><span>Words first · River Morgan</span></button
+          ><button class="example" data-example="night-signal-music">
+            <img
+              src="/examples/night-signal-music.png"
+              alt="Night Signal music card with a purple radio and moth"
+            /><span>Cover artwork · Night Signal</span></button
+          ><button class="example" data-example="field-notes-editorial">
+            <img
+              src="/examples/field-notes-editorial.png"
+              alt="Field Notes editorial card with landscape artwork"
+            /><span>Editorial banner · Field Notes</span>
+          </button>
+        </div>
+      </section>
+      <p>
+        <a href="/profile.html?example=night-signal-artwork"
+          >Open the optional artwork example</a
+        >
+        · Fictional artwork generated deliberately in a trusted local process,
+        then composed by this same local renderer. The original Night Signal
+        artwork stays preserved.
+      </p>
+      <section class="publication-help">
+        <h2>Choose it. Then publish it.</h2>
+        <p>
+          A downloaded card is a local file. In your Linkarooie owner view,
+          compare it with the current image and deliberately apply it. The
+          existing repository publication command prepares the immutable asset;
+          publish through the guarded route, activate the matching revision,
+          then verify the public result.
+        </p>
+        <p>
+          <a href="/help.html">Local processing and publication help</a> ·
+          <a
+            href="https://github.com/loftwah/app-composer-launch-kit/blob/main/docs/profile-cards.md"
+            >Agent command and rendering contract</a
+          >
+        </p>
+        <details>
+          <summary>Optional artwork assistance</summary>
+          <p>
+            Local rendering needs no model, account or key. Optional artwork
+            generation belongs in a trusted local process with explicit
+            enablement, a deliberate request, a selected provider key and
+            limits. It never runs in this public editor. Keep your approved
+            artwork unless you deliberately choose a replacement.
+          </p>
+        </details>
+      </section>
+    </main>
+    <footer>
+      Launch Kit · independent browser-local processing ·
+      <a href="/">Full launch package</a> ·
+      <a href="https://github.com/loftwah/app-composer-launch-kit"
+        >MIT source</a
+      >
+    </footer>
+    <noscript>Enable JavaScript to render cards on this device.</noscript>
+  </body>
+</html>

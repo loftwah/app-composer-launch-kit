@@ -1,8 +1,10 @@
 # Launch Kit
 
+Make one [profile card](https://composer-launch-kit.loftwah.workers.dev/profile.html), [app icons](https://composer-launch-kit.loftwah.workers.dev/?operation=icons), or the existing complete launch package. Five reusable treatments support exact text alone, a portrait, a banner or both. Inspect actual PNG bytes before deliberate profile adoption. See [profile cards and the local agent command](docs/profile-cards.md).
+
 Prepare app icons and social artwork from a local PNG, JPEG or WebP, inspect the actual encoded outputs, and export a portable ZIP. Processing stays in the browser. No account, upload endpoint, image API, storage binding or analytics service.
 
-`pnpm install --frozen-lockfile`, `pnpm check`, `pnpm build`, `pnpm dev`. Node 22 and pnpm 12.8.1 are pinned. Authored strict TypeScript lives in `src/`; build output is readable ES modules in ignored `dist/modules/`. Native canvas PNG encoding, SHA-256 and a bounded ZIP STORE implementation need no runtime packages. Work is sequential and replace/cancel invalidates older results.
+`pnpm install --frozen-lockfile`, `pnpm exec playwright install chromium` (one-time browser dependency), `pnpm check`, `pnpm build`, `pnpm dev`. Node 22 and pnpm 12.8.1 are pinned. Authored strict TypeScript lives in `src/`; build output is readable ES modules in ignored `dist/modules/`. Native canvas PNG encoding, SHA-256 and a bounded ZIP STORE implementation need no runtime packages. Work is sequential and replace/cancel invalidates older results.
 
 The fictional Night Signal sample was generated with Codex's built-in image generation on 23 October 2026. Its prompt and provenance are in `docs/sample.md`. It is independent of all approved Composer/Linkarooie identities. Space Grotesk: Florian Karsten, SIL OFL, licence retained alongside the local font.
 

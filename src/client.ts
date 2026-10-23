@@ -14,6 +14,10 @@ import {
 import { zip } from "./archive.js";
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
+const operation =
+  new URLSearchParams(location.search).get("operation") === "icons"
+    ? "icons"
+    : "package";
 const form = $<HTMLFormElement>("controls"),
   status = $("status"),
   input = $<HTMLInputElement>("source");
@@ -144,9 +148,15 @@ async function render() {
     signal = controller.signal;
   try {
     settings = read();
-    const next = await generate(source, settings, signal, (text) => {
-      if (current === revision) status.textContent = text;
-    });
+    const next = await generate(
+      source,
+      settings,
+      signal,
+      (text) => {
+        if (current === revision) status.textContent = text;
+      },
+      operation,
+    );
     signal.throwIfAborted();
     if (current !== revision) return;
     const nextFiles = packageFiles(settings, source, next);
@@ -454,4 +464,16 @@ window.addEventListener("pagehide", () => {
 window.addEventListener("pageshow", (event) => {
   if (event.persisted && sourceBlob) void choose(sourceBlob);
 });
+if (operation === "icons") {
+  document.querySelector("h1")!.textContent = "App icons, ready to use.";
+  document.querySelector(".intro p")!.textContent =
+    "Make browser-tab, home-screen and maskable app icons from local artwork. Inspect the actual encoded files.";
+  for (const el of document.querySelectorAll<HTMLElement>(
+    ".social-preview, .mobile-preview, #controls fieldset:last-child",
+  ))
+    el.hidden = true;
+  $("continue").hidden = true;
+  $("package").querySelector("p")!.textContent =
+    "Eight app-icon PNGs, a web manifest, reusable configuration and installation notes. No shared-link image is generated for this focused operation.";
+}
 void sample();

@@ -1,6 +1,7 @@
 // MIT. Local-only release from reviewed clean pushed main to the declared static target.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 const run = (command, args, options = {}) =>
   execFileSync(command, args, { encoding: "utf8", ...options });
 const git = (args) => run("git", args).trim(),
@@ -62,11 +63,33 @@ for (const path of [
   "/",
   "/modules/client.js",
   "/modules/processing.js",
+  "/profile.html",
+  "/modules/profile.js",
+  "/modules/profile-client.js",
+  "/modules/font-coverage.js",
+  "/presets.json",
   "/brand/night-signal-icon-32.png",
   "/brand/night-signal-icon-180.png",
 ]) {
   const response = await fetch(origin + path);
   if (!response.ok) throw Error("Missing served output " + path);
+}
+for (const name of [
+  "river-typography",
+  "night-signal-music",
+  "field-notes-editorial",
+  "night-signal-artwork",
+]) {
+  const path = `/examples/${name}.png`,
+    response = await fetch(origin + path);
+  const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
+  if (
+    !response.ok ||
+    response.headers.get("content-type")?.split(";")[0] !== "image/png" ||
+    digest(new Uint8Array(await response.arrayBuffer())) !==
+      digest(readFileSync("dist" + path))
+  )
+    throw Error("Served profile card differs from the reviewed PNG: " + path);
 }
 const page = await fetch(origin + "/");
 if (
