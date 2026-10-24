@@ -52,6 +52,7 @@ const paths = [
   ...["linkarooie", "herethere", "linkcheck", "hello", "carryforward"].map(
     (name) => `/brand/apps/${name}-small-20261018.webp`,
   ),
+  "/brand/apps/ldraw-tile-c9c2339a1296-d2e0dc4b-r2-96.webp",
   "/release.json",
   "/",
   "/modules/client.js",
@@ -76,6 +77,7 @@ const verified = await verifyStaticAssets({
     path,
     bytes: readFileSync(path === "/" ? "dist/index.html" : "dist" + path),
     ...(path.endsWith(".png") ? { type: "image/png" } : {}),
+    ...(path.endsWith(".webp") ? { type: "image/webp" } : {}),
     ...(path === "/" ? { csp: true } : {}),
   })),
 });
