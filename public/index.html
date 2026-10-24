@@ -40,7 +40,7 @@
       content="Night Signal, a fictional radio station identity prepared with Launch Kit."
     />
     <script type="module" src="/modules/client.js"></script>
-    <script type="module" src="/brand/launcher.js"></script>
+    <script src="/brand/launcher.js" defer></script>
   </head>
   <body>
     <a class="skip" href="#workspace">Skip to the editor</a>
@@ -401,27 +401,60 @@ A purple analogue radio tuning in beside a curious moth.</textarea></label
       aria-labelledby="app-navigation-title"
       data-composer-home="https://composer.loftwah.com/"
     >
-      <button type="button" data-close-apps autofocus>Close</button>
-      <h2 id="app-navigation-title">Apps and tasks</h2>
-      <label>Find an app<input type="search" /></label>
-      <p role="status"></p>
+      <div class="dialog-heading">
+        <h2 id="app-navigation-title">Apps and shortcuts</h2>
+        <button type="button" data-close-apps autofocus>Close</button>
+      </div>
+      <label
+        >Find an app or task<input type="search" autocomplete="off"
+      /></label>
+      <p role="status" aria-live="polite"></p>
       <ul>
         <li data-destination>
-          <a href="https://guestbook.loftwah.com">Here / there</a>
+          <a href="https://showcase.loftwah.com/"
+            ><img
+              src="/brand/apps/linkarooie-small-20261018.webp"
+              width="40"
+              height="40"
+              alt="" /><span>Linkarooie<small></small></span
+          ></a>
         </li>
         <li data-destination>
-          <a href="https://showcase.loftwah.com">Linkarooie</a>
+          <a href="https://guestbook.loftwah.com/"
+            ><img
+              src="/brand/apps/herethere-small-20261018.webp"
+              width="40"
+              height="40"
+              alt="" /><span>Here / there<small></small></span
+          ></a>
         </li>
         <li data-destination>
-          <a href="https://share.loftwah.com">Link Check</a>
+          <a href="https://share.loftwah.com/"
+            ><img
+              src="/brand/apps/linkcheck-small-20261018.webp"
+              width="40"
+              height="40"
+              alt="" /><span>Link Check<small></small></span
+          ></a>
         </li>
         <li data-destination>
-          <a href="https://ready.loftwah.com">Hello World</a>
+          <a href="https://ready.loftwah.com/"
+            ><img
+              src="/brand/apps/hello-small-20261018.webp"
+              width="40"
+              height="40"
+              alt="" /><span>Hello World<small></small></span
+          ></a>
         </li>
         <li data-destination>
-          <a href="https://ai.loftwah.com">Carry / forward</a>
+          <a href="https://ai.loftwah.com/"
+            ><img
+              src="/brand/apps/carryforward-small-20261018.webp"
+              width="40"
+              height="40"
+              alt="" /><span>Carry / forward<small></small></span
+          ></a>
         </li>
-        <li data-destination><a href="/" aria-current="page">Launch Kit</a></li>
       </ul>
     </dialog>
     <noscript
