@@ -156,7 +156,8 @@ test("local command works without external networking and names missing assets",
     );
     assert.equal(first.outputs[0].sha256, second.outputs[0].sha256);
     assert.match(first.externalNetworking, /blocked before page load/);
-    assert.match(first.browser, /^151\./);
+    // Report the actual Chromium build rather than pinning one Playwright release.
+    assert.match(first.browser, /^\d+\.\d+\.\d+\.\d+$/);
     const missing = recipe("editorial");
     missing.assets.banner = {
       path: "missing.png",
