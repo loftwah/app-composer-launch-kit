@@ -847,3 +847,59 @@ button.text-button:hover {
     font-size: 11px;
   }
 }
+
+/* A separate, locally served illustration; it is not an editor preview. */
+.edge-study {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: 28px;
+  align-items: center;
+  margin-block: 30px 36px;
+  padding-block: 26px;
+  border-block: 1px solid var(--line);
+}
+.edge-study-copy p {
+  max-width: 65ch;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.edge-study-media {
+  margin: 0;
+  min-width: 0;
+}
+.edge-study-media video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: contain;
+  background: var(--surface);
+  border-radius: 8px;
+}
+.edge-study-media figcaption {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+@media (max-width: 700px) {
+  .edge-study {
+    grid-template-columns: 1fr;
+  }
+  .edge-study-media {
+    max-width: 320px;
+  }
+}
+.edge-study-copy a {
+  color: #ffab83;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.edge-study-copy a:focus-visible {
+  outline: 3px solid #ffab83;
+  outline-offset: 3px;
+}
+:root[data-theme="light"] .edge-study-copy a {
+  color: #9b2f00;
+}
+:root[data-theme="light"] .edge-study-copy a:focus-visible {
+  outline-color: #9b2f00;
+}
