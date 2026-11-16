@@ -18,6 +18,10 @@ Inspect `head.html` before merging and set its absolute deployed social-image UR
 
 An explicit Continue action downloads the ZIP and opens Composer's `/init/launch-kit` review. Select the local ZIP there; no original image is transferred automatically. Supported package validation is mirrored from the reviewed strict TypeScript contract; each application commits its own copy and release. Adopt selected fields into a separate local app draft, download its adoption record, then use the existing reviewed app-creation command. Existing owner projects are never overwritten. See Composer's current instructions for the actual supported target and release gates.
 
+## Public origin
+
+The standalone editor is served from `https://composer-launch-kit.loftwah.workers.dev/`, the supported public origin. Its public pages self-canonicalise there; `robots.txt` points at the matching `sitemap.xml`. No custom domain is configured for this deployment.
+
 ## Release
 
 `pnpm deploy` requires a clean reviewed pushed main and the exact configured existing account. It runs audit, checks and build before the static-assets release, then verifies exact served source and asset responses. No GitHub Actions. The tool uses Workers static assets without a Worker script, database, bucket, queue, scheduled job or image processing service. Existing account costs remain independent.
