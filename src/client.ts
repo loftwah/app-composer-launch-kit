@@ -13,6 +13,7 @@ import {
 } from "./processing.js";
 import { zip } from "./archive.js";
 import { MAX_PALETTE_BYTES, parseStudioPalette } from "./palette.js";
+import { descriptionForSource } from "./alt.js";
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 const operation =
@@ -32,6 +33,11 @@ let source: Source | undefined,
   urls: string[] = [],
   expectedSource: string | undefined;
 let settings: Settings = { ...DEFAULTS };
+// The description is tied to its source image. Track whether it is still the
+// untouched fictional sample copy so a different image never inherits it.
+let altIsSampleCopy = true,
+  sourceIsSample = true;
+const altField = form.elements.namedItem("alt");
 function message(error: unknown) {
   status.textContent =
     error instanceof Error
@@ -260,7 +266,10 @@ async function render() {
     }
   }
 }
-async function choose(blob: Blob, sample = false) {
+async function choose(
+  blob: Blob,
+  action: "local" | "sample" | "restore" = "local",
+) {
   invalidate();
   clearTimeout(timer);
   const current = revision,
@@ -273,7 +282,11 @@ async function choose(blob: Blob, sample = false) {
       next.bitmap.close();
       return;
     }
-    if (expectedSource && expectedSource !== next.digest) {
+    if (
+      action !== "sample" &&
+      expectedSource &&
+      expectedSource !== next.digest
+    ) {
       next.bitmap.close();
       throw Error(
         "This image does not match the reopened configuration. Choose its original source or use the sample to start fresh.",
@@ -283,8 +296,29 @@ async function choose(blob: Blob, sample = false) {
     source = next;
     sourceBlob = blob;
     expectedSource = undefined;
+    sourceIsSample =
+      action === "sample" || (action === "restore" && sourceIsSample);
+    if (action === "sample") {
+      settings = { ...DEFAULTS };
+      fill(settings);
+      altIsSampleCopy = true;
+      $("alt-hint").textContent = "";
+    }
+    if (altField instanceof HTMLTextAreaElement) {
+      const description = descriptionForSource(
+        altField.value,
+        sourceIsSample,
+        altIsSampleCopy,
+      );
+      if (description !== altField.value) {
+        altField.value = description;
+        $("alt-hint").textContent =
+          "Add a short description of your own image.";
+      }
+    }
+    if (!sourceIsSample) altIsSampleCopy = false;
     $("source-info").textContent =
-      `${sample ? "Fictional sample · " : ""}${next.format} · ${next.width} × ${next.height}px`;
+      `${sourceIsSample ? "Fictional sample · " : ""}${next.format} · ${next.width} × ${next.height}px`;
     await render();
   } catch (error) {
     if (current === revision) {
@@ -301,10 +335,8 @@ async function choose(blob: Blob, sample = false) {
 }
 async function sample() {
   invalidate();
+  clearTimeout(timer);
   const sampleRevision = revision;
-  expectedSource = undefined;
-  settings = { ...DEFAULTS };
-  fill(settings);
   try {
     const response = await fetch("/brand/night-signal-20261023.png", {
       signal: controller.signal,
@@ -315,7 +347,7 @@ async function sample() {
       );
     const blob = await response.blob();
     if (sampleRevision !== revision) return;
-    await choose(blob, true);
+    await choose(blob, "sample");
   } catch (error) {
     if (sampleRevision === revision) message(error);
   }
@@ -327,6 +359,11 @@ form.addEventListener("input", () => {
   status.textContent = "Updating the files…";
   timer = setTimeout(() => void render(), 180);
 });
+if (altField instanceof HTMLTextAreaElement)
+  altField.addEventListener("input", () => {
+    altIsSampleCopy = false;
+    $("alt-hint").textContent = "";
+  });
 input.addEventListener("change", () => {
   const file = input.files?.[0];
   input.value = "";
@@ -414,6 +451,8 @@ $("config").addEventListener("change", async () => {
       throw Error("Invalid source identity.");
     settings = candidate;
     fill(settings);
+    altIsSampleCopy = false;
+    $("alt-hint").textContent = "";
     clearPalette();
     expectedSource = s.sha256;
     source?.bitmap.close();
@@ -464,7 +503,7 @@ window.addEventListener("pagehide", () => {
   source = undefined;
 });
 window.addEventListener("pageshow", (event) => {
-  if (event.persisted && sourceBlob) void choose(sourceBlob);
+  if (event.persisted && sourceBlob) void choose(sourceBlob, "restore");
 });
 if (operation === "icons") {
   document.querySelector("h1")!.textContent = "App icons, ready to use.";

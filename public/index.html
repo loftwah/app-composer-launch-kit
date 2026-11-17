@@ -264,9 +264,21 @@
                   maxlength="160"
                   value="Good company after dark." /></label
               ><label
-                >Image description<textarea name="alt" maxlength="300" rows="2">
-A purple analogue radio tuning in beside a curious moth.</textarea></label
-              ><label
+                >Image description<textarea
+                  name="alt"
+                  maxlength="300"
+                  rows="2"
+                  aria-describedby="alt-hint"
+                >
+A purple analogue radio tuning in beside a curious moth.</textarea>
+              </label>
+              <p
+                id="alt-hint"
+                class="small"
+                role="status"
+                aria-live="polite"
+              ></p>
+              <label
                 >Composition<select name="layout">
                   <option value="split">Signal · split colour</option>
                   <option value="poster">After hours · open paper</option>
