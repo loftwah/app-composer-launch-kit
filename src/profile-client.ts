@@ -13,6 +13,7 @@ const $ = <T extends HTMLElement>(id: string) =>
 const form = $<HTMLFormElement>("profile-controls");
 let state = recipe(),
   revision = 0,
+  recipeRead = 0,
   controller = new AbortController(),
   timer: ReturnType<typeof setTimeout>,
   current: Awaited<ReturnType<typeof renderProfile>> | undefined,
@@ -24,6 +25,9 @@ function report(error: unknown) {
     error instanceof Error
       ? error.message
       : "This card could not be rendered. Your controls and artwork are retained.";
+}
+function recipeReport(message: string) {
+  $("recipe-status").textContent = message;
 }
 function controls() {
   for (const [key, value] of Object.entries({
@@ -310,19 +314,40 @@ $("recipe").addEventListener("change", async () => {
     file = input.files?.[0];
   input.value = "";
   if (!file) return;
-  invalidate();
-  const mine = revision;
-  $("status").textContent = "Reading your recipe locally…";
+  const read = ++recipeRead,
+    mine = revision;
+  const reading = "Reading your recipe locally…";
+  recipeReport(reading);
   try {
     if (file.size > 32768) throw Error("Choose a recipe under 32 KiB.");
     const text = await file.text();
-    if (mine !== revision) return;
-    importValue(JSON.parse(text));
-  } catch (error) {
-    if (mine === revision) {
-      report(error);
-      $("cancel").hidden = true;
+    if (read !== recipeRead || mine !== revision) return;
+    let value: unknown;
+    try {
+      value = JSON.parse(text);
+    } catch {
+      throw Error(
+        "Choose a profile recipe or snapshot as JSON.",
+      );
     }
+    importValue(value);
+    recipeReport("Recipe loaded locally.");
+  } catch (error) {
+    if (read === recipeRead && mine === revision) {
+      // A refusal sits beside the picker and changes nothing already rendered.
+      recipeReport(
+        error instanceof Error
+          ? error.message
+          : "That recipe could not be read.",
+      );
+    }
+  } finally {
+    if (
+      read === recipeRead &&
+      mine !== revision &&
+      $("recipe-status").textContent === reading
+    )
+      recipeReport("");
   }
 });
 $("compare").onclick = async () => {
