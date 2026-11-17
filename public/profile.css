@@ -38,7 +38,12 @@ header nav [aria-current] {
   padding-block: 24px;
 }
 .profile-controls input[type="file"] {
-  font-size: 12px;
+  font: inherit;
+  font-size: max(1rem, 1em);
+  min-width: 0;
+}
+.profile-controls input[type="file"]::file-selector-button {
+  font: inherit;
 }
 #preset-list {
   display: grid;
