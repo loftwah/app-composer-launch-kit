@@ -147,8 +147,11 @@
                   id="portrait"
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
+                  aria-describedby="portrait-info"
               /></label>
-              <p id="portrait-info" class="small">No portrait selected.</p>
+              <p id="portrait-info" class="small" role="status">
+                No portrait selected.
+              </p>
               <button type="button" id="remove-portrait" class="text-button">
                 Remove portrait</button
               ><label
@@ -156,8 +159,11 @@
                   id="banner"
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
+                  aria-describedby="banner-info"
               /></label>
-              <p id="banner-info" class="small">No banner selected.</p>
+              <p id="banner-info" class="small" role="status">
+                No banner selected.
+              </p>
               <button type="button" id="remove-banner" class="text-button">
                 Remove banner
               </button>
