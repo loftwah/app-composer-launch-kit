@@ -184,7 +184,12 @@
               id="recipe"
               type="file"
               accept="application/json,.json"
+              aria-describedby="recipe-status"
           /></label>
+          <p id="recipe-status" class="small" role="status" aria-live="polite">
+            Recipes and snapshots are read locally. Your current card stays
+            until an import is accepted.
+          </p>
           <p class="small">
             Recipes contain settings and source hashes. Original images are
             excluded; choose matching files again.
