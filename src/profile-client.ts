@@ -348,27 +348,39 @@ $("recipe").addEventListener("change", async () => {
       recipeReport("");
   }
 });
+let comparing = false;
 $("compare").onclick = async () => {
+  const button = $<HTMLButtonElement>("compare");
+  // One real comparison at a time: a second press while the first is held
+  // must not start another render or replace its choices.
+  if (comparing) return;
+  comparing = true;
+  // Keep focus and the stable label; aria-disabled communicates the wait.
+  button.setAttribute("aria-disabled", "true");
+  // The signal is fixed at activation, so a later edit aborts this whole
+  // comparison instead of letting its remaining runs use a fresh one.
+  const signal = controller.signal;
   try {
     const snapshot = read(),
       mine = revision;
-    $("compare").textContent = "Rendering three candidates…";
+    button.textContent = "Rendering three candidates…";
     const values: {
       id: PresetId;
       result: Awaited<ReturnType<typeof renderProfile>>;
     }[] = [];
     for (const id of ["typography", "portrait", "editorial"] as const) {
+      signal.throwIfAborted();
       const p = recipe(id);
       values.push({
         id,
         result: await renderProfile(
           { ...snapshot, preset: p.preset, colors: p.colors },
           blobs,
-          controller.signal,
+          signal,
         ),
       });
     }
-    if (mine !== revision) return;
+    if (mine !== revision || signal.aborted) return;
     for (const u of comparisonURLs) URL.revokeObjectURL(u);
     comparisonURLs.length = 0;
     $("comparisons").replaceChildren();
@@ -390,9 +402,11 @@ $("compare").onclick = async () => {
       $("comparisons").append(b);
     }
   } catch (error) {
-    report(error);
+    if (!signal.aborted) report(error);
   } finally {
-    $("compare").textContent = "Compare three treatments";
+    comparing = false;
+    button.removeAttribute("aria-disabled");
+    button.textContent = "Compare three treatments";
   }
 };
 async function loadExample(id: string) {
