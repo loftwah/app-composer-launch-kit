@@ -9,10 +9,7 @@ import {
   createGitHubAdapter,
   createReleaseRun,
 } from "./lib/release-timing.mjs";
-import {
-  readServedBuildIdentity,
-  verifyBuildArtifacts,
-} from "./lib/build-identity.mjs";
+import { verifyBuildArtifacts } from "./lib/build-identity.mjs";
 
 const REPO = "loftwah/app-composer-launch-kit";
 const run = (command, args, options = {}) =>
@@ -111,9 +108,16 @@ try {
     run("pnpm", ["check"], { stdio: "inherit" }),
   );
   guard();
-  await stage("checked build identity", () => {
+  const checkedAssets = await stage("checked build identity", () => {
     const manifest = verifyBuildArtifacts({ expectedSha: sha });
     release.note("checkedDist", `reused ${manifest.files} checked files`);
+    return paths.map((path) => ({
+      path,
+      bytes: readFileSync(path === "/" ? "dist/index.html" : "dist" + path),
+      ...(path.endsWith(".png") ? { type: "image/png" } : {}),
+      ...(path.endsWith(".webp") ? { type: "image/webp" } : {}),
+      ...(path === "/" ? { csp: true } : {}),
+    }));
   });
 
   const output = await stage("static-assets upload", () =>
@@ -132,36 +136,24 @@ try {
   if (!urls?.length) throw Error("No verified static deployment URL returned.");
   target = urls[0];
 
-  const live = await stage("served identity and bytes", async () => {
-    const verified = await verifyStaticAssets({
-      origin: target,
-      assets: paths.map((path) => ({
-        path,
-        bytes: readFileSync(path === "/" ? "dist/index.html" : "dist" + path),
-        ...(path.endsWith(".png") ? { type: "image/png" } : {}),
-        ...(path.endsWith(".webp") ? { type: "image/webp" } : {}),
-        ...(path === "/" ? { csp: true } : {}),
-      })),
-    });
-    const identity = await readServedBuildIdentity({
-      origin: target,
-      expectedSha: sha,
-    });
-    return { identity, verified };
-  });
+  // The checked /build.json already names sha. Its identical bytes in the
+  // bounded readback establish live identity without a second edge lookup.
+  const verified = await stage("served identity and bytes", () =>
+    verifyStaticAssets({ origin: target, assets: checkedAssets }),
+  );
 
   const receipt = await release.finish({
     status: "passed",
     target,
-    liveRevision: live.identity.sha,
+    liveRevision: sha,
   });
   console.log(
     JSON.stringify({
       sourceSha: sha,
       origin: target,
-      liveRevision: live.identity.sha,
+      liveRevision: sha,
       processing: "browser-local",
-      verifiedAssets: live.verified,
+      verifiedAssets: verified,
       timing: {
         status: receipt.status,
         totalMs: receipt.totalMs,
