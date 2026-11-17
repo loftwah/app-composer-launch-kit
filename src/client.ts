@@ -36,8 +36,19 @@ let settings: Settings = { ...DEFAULTS };
 // The description is tied to its source image. Track whether it is still the
 // untouched fictional sample copy so a different image never inherits it.
 let altIsSampleCopy = true,
+  titleIsSampleCopy = true,
   sourceIsSample = true;
-const altField = form.elements.namedItem("alt");
+const altField = form.elements.namedItem("alt"),
+  titleField = form.elements.namedItem("title");
+function titleGuidance() {
+  if (!(titleField instanceof HTMLInputElement)) return;
+  const hint = $("title-hint");
+  const text =
+    !sourceIsSample && titleIsSampleCopy && titleField.value === DEFAULTS.title
+      ? "Still using the sample title. Enter the name for your project."
+      : "";
+  if (hint.textContent !== text) hint.textContent = text;
+}
 function message(error: unknown) {
   status.textContent =
     error instanceof Error
@@ -155,6 +166,7 @@ async function render() {
     signal = controller.signal;
   try {
     settings = read();
+    titleGuidance();
     const next = await generate(
       source,
       settings,
@@ -302,6 +314,7 @@ async function choose(
       settings = { ...DEFAULTS };
       fill(settings);
       altIsSampleCopy = true;
+      titleIsSampleCopy = true;
       $("alt-hint").textContent = "";
     }
     if (altField instanceof HTMLTextAreaElement) {
@@ -352,8 +365,10 @@ async function sample() {
     if (sampleRevision === revision) message(error);
   }
 }
-form.addEventListener("input", () => {
+form.addEventListener("input", (event) => {
   invalidate();
+  if (event.target === titleField) titleIsSampleCopy = false;
+  titleGuidance();
   clearTimeout(timer);
   $<HTMLButtonElement>("cancel").hidden = false;
   status.textContent = "Updating the files…";
@@ -453,6 +468,8 @@ $("config").addEventListener("change", async () => {
     fill(settings);
     altIsSampleCopy = false;
     $("alt-hint").textContent = "";
+    titleIsSampleCopy = false;
+    titleGuidance();
     clearPalette();
     expectedSource = s.sha256;
     source?.bitmap.close();

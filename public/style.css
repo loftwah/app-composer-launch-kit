@@ -328,10 +328,12 @@ input[type="color"] {
   color: var(--muted);
   line-height: 1.6;
 }
-#alt-hint {
+#alt-hint,
+#title-hint {
   margin: 0;
 }
-#alt-hint:not(:empty) {
+#alt-hint:not(:empty),
+#title-hint:not(:empty) {
   margin-top: 8px;
 }
 .reopen {
