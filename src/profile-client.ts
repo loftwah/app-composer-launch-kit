@@ -244,7 +244,8 @@ for (const role of ["portrait", "banner"] as const) {
         renderPending = false;
         $("cancel").hidden = true;
         setExportsReady(true);
-        $("status").textContent = "Your previous card and exports are still ready.";
+        $("status").textContent =
+          "Your previous card and exports are still ready.";
       } else {
         await render();
       }
