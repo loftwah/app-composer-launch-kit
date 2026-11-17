@@ -14,6 +14,8 @@ const form = $<HTMLFormElement>("profile-controls");
 let state = recipe(),
   revision = 0,
   recipeRead = 0,
+  pendingExample: AbortController | undefined,
+  renderPending = false,
   controller = new AbortController(),
   timer: ReturnType<typeof setTimeout>,
   current: Awaited<ReturnType<typeof renderProfile>> | undefined,
@@ -67,7 +69,13 @@ function read() {
   state = next;
   return validateRecipe(next);
 }
+function retireExample() {
+  pendingExample?.abort();
+  pendingExample = undefined;
+}
 function invalidate() {
+  retireExample();
+  renderPending = true;
   for (const local of comparisonURLs) URL.revokeObjectURL(local);
   comparisonURLs.length = 0;
   $("comparisons").replaceChildren();
@@ -79,48 +87,68 @@ function invalidate() {
     $<HTMLButtonElement>(id).disabled = true;
   $("cancel").hidden = false;
 }
+async function preview(next: Awaited<ReturnType<typeof renderProfile>>) {
+  const replacement = URL.createObjectURL(
+    new Blob([next.asset.bytes], { type: "image/png" }),
+  );
+  const img = new Image();
+  img.src = replacement;
+  img.alt = next.recipe.text.alt;
+  try {
+    await img.decode();
+  } catch (error) {
+    URL.revokeObjectURL(replacement);
+    throw error;
+  }
+  return { img, replacement };
+}
+function present(
+  next: Awaited<ReturnType<typeof renderProfile>>,
+  img: HTMLImageElement,
+  replacement: string,
+) {
+  if (url) URL.revokeObjectURL(url);
+  url = replacement;
+  current = next;
+  $("preview").replaceChildren(img);
+  $("feed").replaceChildren(img.cloneNode());
+  $<HTMLAnchorElement>("full").href = replacement;
+  $("technical").textContent = JSON.stringify(
+    {
+      ...next.recipe,
+      rendered: {
+        name: next.asset.name,
+        sha256: next.asset.sha256,
+        browser: navigator.userAgent,
+      },
+    },
+    null,
+    2,
+  );
+  for (const id of ["download", "export-recipe", "export-profile"])
+    $<HTMLButtonElement>(id).disabled = false;
+  $("status").textContent =
+    "Rendered locally · actual PNG decoded. Ready to inspect and select.";
+}
 async function render() {
+  renderPending = true;
   const mine = revision,
     signal = controller.signal;
   try {
     const next = await renderProfile(read(), blobs, signal);
-    const replacement = URL.createObjectURL(
-      new Blob([next.asset.bytes], { type: "image/png" }),
-    );
-    const img = new Image();
-    img.src = replacement;
-    img.alt = next.recipe.text.alt;
-    await img.decode();
+    const { img, replacement } = await preview(next);
     if (mine !== revision || signal.aborted) {
       URL.revokeObjectURL(replacement);
       return;
     }
-    if (url) URL.revokeObjectURL(url);
-    url = replacement;
-    current = next;
-    $("preview").replaceChildren(img);
-    $("feed").replaceChildren(img.cloneNode());
-    $<HTMLAnchorElement>("full").href = replacement;
-    $("technical").textContent = JSON.stringify(
-      {
-        ...next.recipe,
-        rendered: {
-          name: next.asset.name,
-          sha256: next.asset.sha256,
-          browser: navigator.userAgent,
-        },
-      },
-      null,
-      2,
-    );
-    for (const id of ["download", "export-recipe", "export-profile"])
-      $<HTMLButtonElement>(id).disabled = false;
-    $("status").textContent =
-      "Rendered locally · actual PNG decoded. Ready to inspect and select.";
+    present(next, img, replacement);
   } catch (error) {
     if (mine === revision && !signal.aborted) report(error);
   } finally {
-    if (mine === revision) $("cancel").hidden = true;
+    if (mine === revision) {
+      renderPending = false;
+      if (pendingExample === undefined) $("cancel").hidden = true;
+    }
   }
 }
 function queue() {
@@ -244,7 +272,14 @@ function selectPreset(id: PresetId) {
 form.addEventListener("input", queue);
 form.addEventListener("submit", (e) => e.preventDefault());
 $("cancel").onclick = () => {
+  if (pendingExample) {
+    retireExample();
+    $("cancel").hidden = !renderPending;
+    $("status").textContent = "Example cancelled.";
+    return;
+  }
   invalidate();
+  renderPending = false;
   $("cancel").hidden = true;
   $("status").textContent =
     "Cancelled. Your words and selected artwork are retained. Change a control to render again.";
@@ -314,6 +349,11 @@ $("recipe").addEventListener("change", async () => {
     file = input.files?.[0];
   input.value = "";
   if (!file) return;
+  if (pendingExample) {
+    retireExample();
+    $("cancel").hidden = !renderPending;
+    $("status").textContent = "Opening a local recipe…";
+  }
   const read = ++recipeRead,
     mine = revision;
   const reading = "Reading your recipe locally…";
@@ -409,19 +449,27 @@ $("compare").onclick = async () => {
     button.textContent = "Compare three treatments";
   }
 };
+const EXAMPLES = new Set([
+  "river-typography",
+  "night-signal-music",
+  "field-notes-editorial",
+  "night-signal-artwork",
+]);
 async function loadExample(id: string) {
-  if (
-    ![
-      "river-typography",
-      "night-signal-music",
-      "field-notes-editorial",
-      "night-signal-artwork",
-    ].includes(id)
-  )
-    return;
-  invalidate();
-  const mine = revision,
-    signal = controller.signal;
+  if (!EXAMPLES.has(id)) return;
+  retireExample();
+  recipeRead++;
+  recipeReport("");
+  const example = new AbortController(),
+    { signal } = example;
+  // Fetch, validate and render this example as a candidate without touching
+  // the ready card or its controls. A refusal changes nothing usable.
+  pendingExample = example;
+  $("cancel").hidden = false;
+  $("status").textContent = current
+    ? "Opening the fictional example… Your card and exports stay ready."
+    : "Preparing your first card…";
+  let candidateURL: string | undefined;
   try {
     const response = await fetch(`/examples/${id}.json`, { signal });
     if (!response.ok)
@@ -433,13 +481,22 @@ async function loadExample(id: string) {
         const path = next.assets[role]!.path;
         if (!/^[a-z0-9.-]+$/.test(path))
           throw Error("Invalid example source path.");
-        const response = await fetch(`/examples/${path}`, { signal });
-        if (!response.ok)
+        const artwork = await fetch(`/examples/${path}`, { signal });
+        if (!artwork.ok)
           throw Error("Example artwork unavailable; choose a local file.");
-        selected[role] = await response.blob();
+        selected[role] = await artwork.blob();
       }
-    if (mine !== revision || signal.aborted) return;
-    state = next;
+    if (signal.aborted) return;
+    // Rendering checks the fetched artwork digests and decodes the actual PNG
+    // before this example may replace the current choices.
+    const rendered = await renderProfile(next, selected, signal);
+    const { img, replacement } = await preview(rendered);
+    candidateURL = replacement;
+    if (signal.aborted) return;
+    pendingExample = undefined;
+    invalidate();
+    renderPending = false;
+    state = rendered.recipe;
     delete blobs.portrait;
     delete blobs.banner;
     Object.assign(blobs, selected);
@@ -448,10 +505,18 @@ async function loadExample(id: string) {
       $(`${role}-info`).textContent = state.assets[role]
         ? `Fictional example · ${state.assets[role]!.path}`
         : `No ${role} selected.`;
-    await render();
+    present(rendered, img, replacement);
+    candidateURL = undefined;
+    $("cancel").hidden = true;
     window.scrollTo({ top: 0, behavior: "smooth" });
   } catch (error) {
-    if (mine === revision && !signal.aborted) report(error);
+    if (!signal.aborted) report(error);
+  } finally {
+    if (candidateURL) URL.revokeObjectURL(candidateURL);
+    if (pendingExample === example) {
+      pendingExample = undefined;
+      if (!renderPending) $("cancel").hidden = true;
+    }
   }
 }
 for (const button of document.querySelectorAll<HTMLButtonElement>(
@@ -512,6 +577,7 @@ $("theme").onclick = () => {
     document.documentElement.dataset.theme === "light" ? "dark" : "light";
 };
 window.addEventListener("pagehide", () => {
+  retireExample();
   controller.abort();
   if (url) URL.revokeObjectURL(url);
   for (const u of comparisonURLs) URL.revokeObjectURL(u);
