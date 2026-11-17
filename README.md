@@ -24,6 +24,8 @@ The standalone editor is served from `https://composer-launch-kit.loftwah.worker
 
 ## Release
 
-`pnpm deploy` requires a clean reviewed pushed main and the exact configured existing account. It runs audit, checks and build before the static-assets release, then verifies exact served source and asset responses. No GitHub Actions. The tool uses Workers static assets without a Worker script, database, bucket, queue, scheduled job or image processing service. Existing account costs remain independent.
+`pnpm deploy` requires a clean reviewed pushed main and the exact configured existing account. It runs audit and `pnpm check` (which builds inside `pnpm test`) once, reuses that exact checked tree only while its recorded manifest still matches, uploads the static assets, then verifies the served build identity and exact asset bytes. No GitHub Actions. The tool uses Workers static assets without a Worker script, database, bucket, queue, scheduled job or image processing service. Existing account costs remain independent.
+
+Qualification-to-live time is recorded in a redacted `release-timing/v1` receipt under ignored `.release/timing/`. A run at or over 300 seconds still completes, then opens or updates one deduplicated `[DELIVERY SLA]` issue; a failed GitHub write is queued and never shown as delivered. Set `LAUNCH_KIT_FIRST_EDIT_AT` to an exact UTC `date -u +%Y-%m-%dT%H:%M:%SZ` value to add the opt-in first-edit gap. `node scripts/release-watchdog.mjs --repo loftwah/app-composer-launch-kit --check-stuck --retry-pending` reports stale runs and retries queued alerts.
 
 [Security](SECURITY.md) · [Accessibility](ACCESSIBILITY.md) · [Contributing](CONTRIBUTING.md)
