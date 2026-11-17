@@ -43,6 +43,7 @@ let packageReady = false,
 // The source read currently in flight, so Cancel can tell a picker read from a
 // render and restore the earlier package only when the source never changed.
 let reading: { keep: boolean } | undefined;
+let loadingInitialSample = false;
 // The description is tied to its source image. Track whether it is still the
 // untouched fictional sample copy so a different image never inherits it.
 let altIsSampleCopy = true,
@@ -322,9 +323,10 @@ async function render() {
 }
 async function choose(
   blob: Blob,
-  action: "local" | "sample" | "restore" = "local",
+  action: "local" | "sample" | "initial-sample" | "restore" = "local",
   keep = packageReady || reading?.keep === true,
 ) {
+  if (action !== "initial-sample") loadingInitialSample = false;
   invalidate();
   clearTimeout(timer);
   const current = revision,
@@ -356,7 +358,9 @@ async function choose(
     sourceBlob = blob;
     expectedSource = undefined;
     sourceIsSample =
-      action === "sample" || (action === "restore" && sourceIsSample);
+      action === "sample" ||
+      action === "initial-sample" ||
+      (action === "restore" && sourceIsSample);
     if (action === "sample") {
       settings = { ...DEFAULTS };
       fill(settings);
@@ -402,7 +406,8 @@ async function choose(
     if (reading === token) reading = undefined;
   }
 }
-async function sample() {
+async function sample(action: "sample" | "initial-sample" = "sample") {
+  loadingInitialSample = action === "initial-sample";
   const keep = packageReady || reading?.keep === true;
   invalidate();
   clearTimeout(timer);
@@ -418,7 +423,7 @@ async function sample() {
       );
     const blob = await response.blob();
     if (sampleRevision !== revision) return;
-    await choose(blob, "sample", keep);
+    await choose(blob, action, keep);
   } catch (error) {
     if (sampleRevision === revision) {
       const restored = restorePackage(keep),
@@ -433,12 +438,16 @@ async function sample() {
         true,
       );
     }
+  } finally {
+    if (action === "initial-sample") loadingInitialSample = false;
   }
 }
 form.addEventListener("input", (event) => {
-  invalidate();
   if (event.target === titleField) titleIsSampleCopy = false;
   titleGuidance();
+  // The initial render reads the current controls after the example decodes.
+  if (loadingInitialSample && !source) return;
+  invalidate();
   clearTimeout(timer);
   $<HTMLButtonElement>("cancel").hidden = false;
   status.textContent = "Updating the files…";
@@ -749,4 +758,4 @@ function revealStudioPalette() {
 }
 revealStudioPalette();
 window.addEventListener("hashchange", revealStudioPalette);
-void sample();
+void sample("initial-sample");
