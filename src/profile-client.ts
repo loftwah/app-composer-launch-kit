@@ -192,7 +192,12 @@ for (const role of ["portrait", "banner"] as const) {
       $(`${role}-info`).textContent = `${file.name} · selected locally`;
       await render();
     } catch (error) {
-      report(error);
+      if (mine !== revision) return;
+      $(`${role}-info`).textContent =
+        error instanceof Error
+          ? error.message
+          : "That image could not be read. Choose a PNG, JPEG or WebP up to 10 MiB.";
+      await render();
     }
   });
   $(`remove-${role}`).onclick = () => {
