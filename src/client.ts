@@ -664,27 +664,35 @@ paletteTarget.addEventListener("input", (event) => event.stopPropagation());
 paletteFile.addEventListener("change", async () => {
   const file = paletteFile.files?.[0];
   paletteFile.value = "";
-  clearPalette();
-  const read = paletteRead;
+  // A cancelled picker is not a newer file; it leaves the panel untouched.
   if (!file) return;
+  // A newer pick supersedes an older read without emptying the swatches. The
+  // colours, the selected swatch and the target stay until a readable palette
+  // replaces them, so a rejected or pending file never costs the earlier one.
+  const read = ++paletteRead;
   if (file.size > MAX_PALETTE_BYTES) {
     paletteMessage("Choose a palette under 32 KiB.", true);
     return;
   }
   let swatches: string[];
   try {
+    paletteMessage("Reading the palette file…");
     swatches = parseStudioPalette(await file.text());
   } catch (error) {
     if (read !== paletteRead) return;
     paletteMessage(
-      error instanceof Error
+      (error instanceof Error
         ? error.message
-        : "That palette could not be read.",
+        : "That palette could not be read.") +
+        (paletteSwatches.childElementCount
+          ? " Your previous colours are unchanged."
+          : ""),
       true,
     );
     return;
   }
   if (read !== paletteRead) return;
+  const fragment = document.createDocumentFragment();
   for (const hex of swatches) {
     const swatch = document.createElement("button");
     swatch.type = "button";
@@ -705,8 +713,13 @@ paletteFile.addEventListener("change", async () => {
       paletteAssign.hidden = false;
       paletteMessage(`Selected ${hex}. Choose a target colour, then apply.`);
     });
-    paletteSwatches.append(swatch);
+    fragment.append(swatch);
   }
+  paletteSwatches.replaceChildren(fragment);
+  // The earlier selection named a swatch that is gone; choosing a target
+  // colour is still deliberate and its selection is left as it was.
+  chosenSwatch = undefined;
+  paletteAssign.hidden = true;
   paletteMessage(
     `${swatches.length} colour${swatches.length === 1 ? "" : "s"} imported. Nothing has changed yet.`,
   );
