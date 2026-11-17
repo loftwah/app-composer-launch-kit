@@ -624,4 +624,14 @@ $("palette-apply").addEventListener("click", () => {
     `${chosenSwatch} applied to ${target}. Review the regenerated files; nothing was saved automatically.`,
   );
 });
+// The #studio-palette fragment targets the summary, which stays visible and
+// natively focusable with JS off. With JS, open only that details at load or on
+// a hash change; importing stays inert and no other details state is touched.
+function revealStudioPalette() {
+  if (location.hash !== "#studio-palette") return;
+  const details = $("studio-palette").closest("details");
+  if (details) details.open = true;
+}
+revealStudioPalette();
+window.addEventListener("hashchange", revealStudioPalette);
 void sample();
