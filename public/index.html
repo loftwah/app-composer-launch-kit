@@ -212,6 +212,43 @@
                   >Ink<input type="color" name="ink" value="#211d30"
                 /></label>
               </div>
+              <details class="palette-import">
+                <summary>Import a Media Studio palette</summary>
+                <p class="small">
+                  Choose a local palette file. Its colours are shown here only;
+                  nothing changes until you pick a swatch and apply it.
+                </p>
+                <label
+                  >Palette file<input
+                    id="palette-file"
+                    type="file"
+                    accept="application/json,.json"
+                /></label>
+                <p
+                  id="palette-status"
+                  class="palette-status small"
+                  role="status"
+                  aria-live="polite"
+                ></p>
+                <div
+                  id="palette-swatches"
+                  class="palette-swatches"
+                  role="group"
+                  aria-label="Imported palette colours"
+                ></div>
+                <div id="palette-assign" class="palette-assign" hidden>
+                  <label
+                    >Apply selected colour to<select id="palette-target">
+                      <option value="background">Paper (background)</option>
+                      <option value="accent">Accent</option>
+                      <option value="ink">Ink</option>
+                    </select></label
+                  >
+                  <button type="button" id="palette-apply">
+                    Apply to identity colour
+                  </button>
+                </div>
+              </details>
             </fieldset>
             <fieldset>
               <legend>Your shared link</legend>
