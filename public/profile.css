@@ -134,6 +134,7 @@ header nav [aria-current] {
 .example img {
   display: block;
   width: 100%;
+  height: auto;
   margin-bottom: 14px;
 }
 .example span {
