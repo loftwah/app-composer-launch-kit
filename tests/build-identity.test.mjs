@@ -11,10 +11,11 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import {
   BUILD_MANIFEST_SCHEMA,
-  readServedBuildIdentity,
   verifyBuildArtifacts,
   writeBuildManifest,
 } from "../scripts/lib/build-identity.mjs";
+
+import { verifyStaticAssets } from "../scripts/verify-static-assets.mjs";
 
 const SHA = "a".repeat(40);
 const OTHER_SHA = "b".repeat(40);
@@ -179,45 +180,34 @@ test("a tampered or foreign manifest fails closed", (t) => {
   );
 });
 
-test("the served build identity must name the exact released source", async () => {
-  const calls = [];
-  const fetchImpl = (url, options) => {
-    calls.push([url, options]);
-    assert.equal(options.headers["Cache-Control"], "no-cache");
-    return new Response(
-      JSON.stringify({ app: "launch-kit", sha: SHA, contract: 1 }),
-    );
-  };
-  const identity = await readServedBuildIdentity({
+test("the live build identity is the exact checked response, with bounded propagation retries", async (t) => {
+  const { dist, manifestPath } = fixture(t);
+  verifyBuildArtifacts({ expectedSha: SHA, root: dist, manifestPath });
+  const exact = readFileSync(join(dist, "build.json"));
+  const stale = JSON.stringify({ ...JSON.parse(exact), sha: OTHER_SHA });
+  const assets = [{ path: "/build.json", bytes: exact }];
+  let reads = 0;
+  const verified = await verifyStaticAssets({
     origin: "https://example.test",
-    expectedSha: SHA,
-    fetchImpl,
+    assets,
+    attempts: 2,
+    delayMs: 0,
+    fetchImpl: (url) => {
+      assert.equal(url.pathname, "/build.json");
+      reads++;
+      return new Response(reads === 1 ? stale : exact);
+    },
   });
-  assert.deepEqual(identity, { app: "launch-kit", sha: SHA });
-  assert.equal(calls[0][0].pathname, "/build.json");
-
-  for (const [label, response, reason] of [
-    [
-      "mismatched revision",
-      () => new Response(JSON.stringify({ app: "launch-kit", sha: OTHER_SHA })),
-      /does not match/,
-    ],
-    [
-      "wrong application",
-      () => new Response(JSON.stringify({ app: "other", sha: SHA })),
-      /not Launch Kit/,
-    ],
-    ["unavailable", () => new Response("nope", { status: 503 }), /HTTP 503/],
-    ["invalid JSON", () => new Response("not json"), /not valid JSON/],
-  ]) {
-    await assert.rejects(
-      readServedBuildIdentity({
-        origin: "https://example.test",
-        expectedSha: SHA,
-        fetchImpl: async () => response(),
-      }),
-      reason,
-      label,
-    );
-  }
+  assert.equal(reads, 2);
+  assert.equal(verified[0].path, "/build.json");
+  assert.equal(verified[0].attempt, 2);
+  await assert.rejects(
+    verifyStaticAssets({
+      origin: "https://example.test",
+      assets,
+      attempts: 1,
+      fetchImpl: () => new Response(stale),
+    }),
+    /\/build.json: SHA-256 differs from reviewed bytes/,
+  );
 });

@@ -138,35 +138,3 @@ export function verifyBuildArtifacts({
     throw new Error("Release identity does not name the released source.");
   return { digest: manifest.digest, files: manifest.files.length };
 }
-
-/** Read the served /build.json and require it to name the released source. */
-export async function readServedBuildIdentity({
-  origin,
-  expectedSha,
-  fetchImpl = fetch,
-  timeoutMs = 10_000,
-} = {}) {
-  if (!SOURCE_SHA.test(expectedSha ?? ""))
-    throw new Error("Served identity needs the exact 40-character source SHA.");
-  const url = new URL("/build.json", origin);
-  const response = await fetchImpl(url, {
-    headers: { "Cache-Control": "no-cache" },
-    redirect: "error",
-    signal: AbortSignal.timeout(timeoutMs),
-  });
-  if (!response.ok)
-    throw new Error(`Served build identity returned HTTP ${response.status}.`);
-  let build;
-  try {
-    build = await response.json();
-  } catch {
-    throw new Error("Served build identity is not valid JSON.");
-  }
-  if (build?.app !== "launch-kit")
-    throw new Error("Served build identity is not Launch Kit.");
-  if (build?.sha !== expectedSha)
-    throw new Error(
-      `Served build identity ${build?.sha} does not match ${expectedSha}.`,
-    );
-  return { app: build.app, sha: build.sha };
-}
