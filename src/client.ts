@@ -430,19 +430,33 @@ $("continue").addEventListener("click", () => {
   a.textContent = "Open Composer import";
   $("export-status").append(" ", a);
 });
-$("config").addEventListener("change", async () => {
-  const control = $<HTMLInputElement>("config"),
-    file = control.files?.[0];
-  control.value = "";
+const configInput = $<HTMLInputElement>("config"),
+  configStatus = $("config-status");
+// Configuration reads are ordered separately from editor revisions so a newer
+// pick still wins when an older read resolves first.
+let configRead = 0;
+function configMessage(error?: unknown) {
+  configStatus.textContent =
+    error === undefined
+      ? ""
+      : error instanceof Error
+        ? error.message
+        : "That configuration could not be read.";
+  configStatus.classList.toggle("error", error !== undefined);
+}
+configInput.addEventListener("change", async () => {
+  const file = configInput.files?.[0];
+  configInput.value = "";
   if (!file) return;
-  invalidate();
-  clearTimeout(timer);
-  const current = revision;
+  const read = ++configRead,
+    current = revision;
+  configMessage();
+  let reopened: { settings: Settings; source: string } | undefined;
   try {
     if (file.size > 32768)
       throw Error("Choose a Launch Kit configuration under 32 KiB.");
     const raw: unknown = JSON.parse(await file.text());
-    if (current !== revision) return;
+    if (read !== configRead || current !== revision) return;
     if (
       !raw ||
       typeof raw !== "object" ||
@@ -454,8 +468,7 @@ $("config").addEventListener("change", async () => {
       !("source" in raw)
     )
       throw Error("Unsupported Launch Kit configuration.");
-    const candidate = validateSettings(raw.settings),
-      s = raw.source;
+    const s = raw.source;
     if (
       !s ||
       typeof s !== "object" ||
@@ -464,30 +477,37 @@ $("config").addEventListener("change", async () => {
       !/^[a-f0-9]{64}$/.test(s.sha256)
     )
       throw Error("Invalid source identity.");
-    settings = candidate;
-    fill(settings);
-    altIsSampleCopy = false;
-    $("alt-hint").textContent = "";
-    titleIsSampleCopy = false;
-    titleGuidance();
-    clearPalette();
-    expectedSource = s.sha256;
-    source?.bitmap.close();
-    source = undefined;
-    revoke();
-    for (const node of document.querySelectorAll("[data-image]"))
-      node.replaceChildren();
-    files.clear();
-    assets = [];
-    $("asset-list").replaceChildren();
-    $("package-view").textContent = "";
-    $("source-info").textContent =
-      "Choose the original image to regenerate this configuration.";
-    status.textContent =
-      "Configuration reopened. Choose the matching source image; nothing was uploaded.";
+    reopened = { settings: validateSettings(raw.settings), source: s.sha256 };
   } catch (error) {
-    message(error);
+    if (read === configRead && current === revision) configMessage(error);
+    return;
   }
+  if (!reopened) return;
+  // Only an accepted configuration replaces the current package; the
+  // rejection above left the ready files, exports and focus untouched.
+  invalidate();
+  clearTimeout(timer);
+  settings = reopened.settings;
+  fill(settings);
+  altIsSampleCopy = false;
+  $("alt-hint").textContent = "";
+  titleIsSampleCopy = false;
+  titleGuidance();
+  clearPalette();
+  expectedSource = reopened.source;
+  source?.bitmap.close();
+  source = undefined;
+  revoke();
+  for (const node of document.querySelectorAll("[data-image]"))
+    node.replaceChildren();
+  files.clear();
+  assets = [];
+  $("asset-list").replaceChildren();
+  $("package-view").textContent = "";
+  $("source-info").textContent =
+    "Choose the original image to regenerate this configuration.";
+  status.textContent =
+    "Configuration reopened. Choose the matching source image; nothing was uploaded.";
 });
 $("surround").addEventListener("change", () =>
   $("surroundings").classList.toggle(
