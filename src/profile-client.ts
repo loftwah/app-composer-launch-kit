@@ -1,4 +1,3 @@
-import { sha256 } from "./contract.js";
 import {
   PRESETS,
   recipe,
@@ -7,6 +6,7 @@ import {
   type PresetId,
   type Crop,
 } from "./profile.js";
+import { decodeSource } from "./processing.js";
 import { zip } from "./archive.js";
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
@@ -73,6 +73,10 @@ function retireExample() {
   pendingExample?.abort();
   pendingExample = undefined;
 }
+function setExportsReady(ready: boolean) {
+  for (const id of ["download", "export-recipe", "export-profile"])
+    $<HTMLButtonElement>(id).disabled = !ready;
+}
 function invalidate() {
   retireExample();
   renderPending = true;
@@ -83,8 +87,7 @@ function invalidate() {
   controller.abort();
   controller = new AbortController();
   clearTimeout(timer);
-  for (const id of ["download", "export-recipe", "export-profile"])
-    $<HTMLButtonElement>(id).disabled = true;
+  setExportsReady(false);
   $("cancel").hidden = false;
 }
 async function preview(next: Awaited<ReturnType<typeof renderProfile>>) {
@@ -125,8 +128,7 @@ function present(
     null,
     2,
   );
-  for (const id of ["download", "export-recipe", "export-profile"])
-    $<HTMLButtonElement>(id).disabled = false;
+  setExportsReady(true);
   $("status").textContent =
     "Rendered locally · actual PNG decoded. Ready to inspect and select.";
 }
@@ -208,19 +210,28 @@ for (const role of ["portrait", "banner"] as const) {
       file = el.files?.[0];
     el.value = "";
     if (!file) return;
+    const hadReadyCard = !$<HTMLButtonElement>("download").disabled;
     invalidate();
     const mine = revision;
     try {
-      if (file.size === 0 || file.size > 10 * 1024 * 1024)
-        throw Error("Choose a PNG, JPEG or WebP up to 10 MiB.");
-      const hash = await sha256(new Uint8Array(await file.arrayBuffer()));
-      if (mine !== revision) return;
-      if (state.assets[role] && state.assets[role]!.sha256 !== hash)
-        throw Error(
-          `This ${role} does not match the saved source. Remove it first to deliberately choose a replacement.`,
-        );
-      blobs[role] = file;
-      state.assets[role] = { path: file.name, sha256: hash, included: false };
+      // Decode the actual file before this choice becomes the saved role, so a
+      // broken or unsupported image never leaves its digest behind.
+      const source = await decodeSource(file, controller.signal);
+      try {
+        if (mine !== revision) return;
+        if (state.assets[role] && state.assets[role]!.sha256 !== source.digest)
+          throw Error(
+            `This ${role} does not match the saved source. Remove it first to deliberately choose a replacement.`,
+          );
+        blobs[role] = file;
+        state.assets[role] = {
+          path: file.name,
+          sha256: source.digest,
+          included: false,
+        };
+      } finally {
+        source.bitmap.close();
+      }
       $(`${role}-info`).textContent = `${file.name} · selected locally`;
       await render();
     } catch (error) {
@@ -229,7 +240,14 @@ for (const role of ["portrait", "banner"] as const) {
         error instanceof Error
           ? error.message
           : "That image could not be read. Choose a PNG, JPEG or WebP up to 10 MiB.";
-      await render();
+      if (hadReadyCard) {
+        renderPending = false;
+        $("cancel").hidden = true;
+        setExportsReady(true);
+        $("status").textContent = "Your previous card and exports are still ready.";
+      } else {
+        await render();
+      }
     }
   });
   $(`remove-${role}`).onclick = () => {
