@@ -6,3 +6,4 @@ output/
 .env*
 
 .playwright-cli/
+.release/

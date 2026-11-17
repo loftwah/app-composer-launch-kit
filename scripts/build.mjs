@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { writeBuildManifest } from "./lib/build-identity.mjs";
 rmSync("dist", { recursive: true, force: true });
 mkdirSync("dist");
 cpSync("public", "dist", { recursive: true });
@@ -47,3 +48,6 @@ writeFileSync(
     2,
   ) + "\n",
 );
+
+// The release guard reuses this exact checked tree instead of building twice.
+writeBuildManifest({ root: "dist", sourceSha: sha });
