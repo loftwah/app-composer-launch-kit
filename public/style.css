@@ -328,6 +328,12 @@ input[type="color"] {
   color: var(--muted);
   line-height: 1.6;
 }
+#alt-hint {
+  margin: 0;
+}
+#alt-hint:not(:empty) {
+  margin-top: 8px;
+}
 .reopen {
   margin-block: 24px;
 }
