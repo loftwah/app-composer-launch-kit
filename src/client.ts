@@ -22,6 +22,7 @@ const operation =
     : "package";
 const form = $<HTMLFormElement>("controls"),
   status = $("status"),
+  sourceStatus = $("source-status"),
   input = $<HTMLInputElement>("source");
 let sourceBlob: Blob | undefined;
 let source: Source | undefined,
@@ -33,6 +34,15 @@ let source: Source | undefined,
   urls: string[] = [],
   expectedSource: string | undefined;
 let settings: Settings = { ...DEFAULTS };
+// Export readiness belongs to one exact source and one exact settings object.
+// Remember both with the ready files so a refused or cancelled source read can
+// restore that package only while it still is the one on screen.
+let packageReady = false,
+  readySettings: Settings | undefined,
+  readySource: Source | undefined;
+// The source read currently in flight, so Cancel can tell a picker read from a
+// render and restore the earlier package only when the source never changed.
+let reading: { keep: boolean } | undefined;
 // The description is tied to its source image. Track whether it is still the
 // untouched fictional sample copy so a different image never inherits it.
 let altIsSampleCopy = true,
@@ -55,6 +65,12 @@ function message(error: unknown) {
       ? error.message
       : "The image could not be prepared. Choose another file.";
 }
+// Source errors sit beside the picker that caused them, not by the preview that
+// stays usable. The empty element hides itself through the shared status style.
+function sourceMessage(text = "", error = false) {
+  sourceStatus.textContent = text;
+  sourceStatus.classList.toggle("error", error);
+}
 function revoke() {
   for (const url of urls) URL.revokeObjectURL(url);
   urls = [];
@@ -71,8 +87,29 @@ function invalidate() {
   revision++;
   controller.abort();
   controller = new AbortController();
+  packageReady = false;
+  reading = undefined;
   buttons(false);
   $("export-status").textContent = "";
+}
+// Re-enable the package that was ready before a source read was refused or
+// cancelled. It qualifies only while the same source, settings and files are
+// still in place; a newer selection, a settings change or an interrupted render
+// leaves the export disabled rather than reviving stale or partial files.
+function restorePackage(keep: boolean) {
+  if (
+    !keep ||
+    !files.size ||
+    !source ||
+    source !== readySource ||
+    settings !== readySettings
+  )
+    return false;
+  packageReady = true;
+  buttons(true);
+  status.textContent =
+    "Generated · actual PNG files decoded and ready to inspect.";
+  return true;
 }
 function read(): Settings {
   const data = new FormData(form);
@@ -251,7 +288,9 @@ async function render() {
       button.textContent = "Download";
       button.setAttribute("aria-label", "Download " + name);
       button.onclick = () => {
-        if (current !== revision) return;
+        // A restored package keeps these rows; they stay usable only while the
+        // same bytes are still the current package.
+        if (!packageReady || files.get(name) !== bytes) return;
         download(
           bytes,
           name,
@@ -265,6 +304,9 @@ async function render() {
     }
     guidance();
     buttons(true);
+    packageReady = true;
+    readySettings = settings;
+    readySource = source;
     status.textContent =
       "Generated · actual PNG files decoded and ready to inspect.";
     $<HTMLButtonElement>("cancel").hidden = true;
@@ -281,13 +323,17 @@ async function render() {
 async function choose(
   blob: Blob,
   action: "local" | "sample" | "restore" = "local",
+  keep = packageReady || reading?.keep === true,
 ) {
   invalidate();
   clearTimeout(timer);
   const current = revision,
     signal = controller.signal;
+  sourceMessage();
   status.textContent = "Checking and decoding the image on this device…";
   $<HTMLButtonElement>("cancel").hidden = false;
+  const token = { keep };
+  reading = token;
   try {
     const next = await decodeSource(blob, signal);
     if (current !== revision) {
@@ -304,6 +350,7 @@ async function choose(
         "This image does not match the reopened configuration. Choose its original source or use the sample to start fresh.",
       );
     }
+    reading = undefined;
     source?.bitmap.close();
     source = next;
     sourceBlob = blob;
@@ -335,21 +382,32 @@ async function choose(
     await render();
   } catch (error) {
     if (current === revision) {
-      message(
-        signal.aborted
-          ? new Error(
-              "Image preparation cancelled. Your previous image is retained.",
-            )
-          : error,
+      status.textContent = "Choose a readable image to prepare new files.";
+      const cancelled = signal.aborted,
+        restored = restorePackage(keep),
+        detail = cancelled
+          ? "Image preparation cancelled."
+          : error instanceof Error
+            ? error.message
+            : "The image could not be prepared. Choose another file.";
+      sourceMessage(
+        restored
+          ? `${detail} Your previous package is still ready to export.`
+          : detail,
+        !cancelled,
       );
       $<HTMLButtonElement>("cancel").hidden = true;
     }
+  } finally {
+    if (reading === token) reading = undefined;
   }
 }
 async function sample() {
+  const keep = packageReady || reading?.keep === true;
   invalidate();
   clearTimeout(timer);
   const sampleRevision = revision;
+  sourceMessage();
   try {
     const response = await fetch("/brand/night-signal-20261023.png", {
       signal: controller.signal,
@@ -360,9 +418,21 @@ async function sample() {
       );
     const blob = await response.blob();
     if (sampleRevision !== revision) return;
-    await choose(blob, "sample");
+    await choose(blob, "sample", keep);
   } catch (error) {
-    if (sampleRevision === revision) message(error);
+    if (sampleRevision === revision) {
+      const restored = restorePackage(keep),
+        detail =
+          error instanceof Error
+            ? error.message
+            : "The sample is unavailable. Choose a local image to continue.";
+      sourceMessage(
+        restored
+          ? `${detail} Your previous package is still ready to export.`
+          : detail,
+        true,
+      );
+    }
   }
 }
 form.addEventListener("input", (event) => {
@@ -394,18 +464,29 @@ drop.addEventListener("drop", (e) => {
   e.preventDefault();
   drop.classList.remove("dragging");
   if (e.dataTransfer?.files.length !== 1) {
-    message(Error("Drop one supported image at a time."));
+    sourceMessage("Drop one supported image at a time.", true);
     return;
   }
   void choose(e.dataTransfer.files[0]);
 });
 $("sample").addEventListener("click", () => void sample());
 $("cancel").addEventListener("click", () => {
+  const pendingRead = reading;
   invalidate();
   clearTimeout(timer);
+  $<HTMLButtonElement>("cancel").hidden = true;
+  // Cancelling a picker read never touched the source, so the earlier package
+  // can stay exportable. Cancelling a render cannot: its source or settings
+  // already moved on, and the old files no longer describe what is on screen.
   status.textContent =
     "Preparation cancelled. Change a control or choose another image to continue.";
-  $<HTMLButtonElement>("cancel").hidden = true;
+  const restored = pendingRead ? restorePackage(pendingRead.keep) : false;
+  if (pendingRead)
+    sourceMessage(
+      restored
+        ? "Image preparation cancelled. Your previous image is retained."
+        : "Image preparation cancelled. Choose another image or change a control to continue.",
+    );
 });
 function exportPackage() {
   if (!files.size) return;
@@ -506,6 +587,7 @@ configInput.addEventListener("change", async () => {
   $("package-view").textContent = "";
   $("source-info").textContent =
     "Choose the original image to regenerate this configuration.";
+  sourceMessage();
   status.textContent =
     "Configuration reopened. Choose the matching source image; nothing was uploaded.";
 });
