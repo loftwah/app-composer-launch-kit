@@ -326,9 +326,7 @@ $("recipe").addEventListener("change", async () => {
     try {
       value = JSON.parse(text);
     } catch {
-      throw Error(
-        "Choose a profile recipe or snapshot as JSON.",
-      );
+      throw Error("Choose a profile recipe or snapshot as JSON.");
     }
     importValue(value);
     recipeReport("Recipe loaded locally.");
