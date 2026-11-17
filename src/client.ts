@@ -12,6 +12,7 @@ import {
   type Asset,
 } from "./processing.js";
 import { zip } from "./archive.js";
+import { MAX_PALETTE_BYTES, parseStudioPalette } from "./palette.js";
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 const operation =
@@ -413,6 +414,7 @@ $("config").addEventListener("change", async () => {
       throw Error("Invalid source identity.");
     settings = candidate;
     fill(settings);
+    clearPalette();
     expectedSource = s.sha256;
     source?.bitmap.close();
     source = undefined;
@@ -476,4 +478,94 @@ if (operation === "icons") {
   $("package").querySelector("p")!.textContent =
     "Eight app-icon PNGs, a web manifest, reusable configuration and installation notes. No shared-link image is generated for this focused operation.";
 }
+// Optional Media Studio palette. Importing is inert: it only reads a local
+// file into swatches. An explicit Apply sets one identity colour and reuses
+// the debounced input -> render -> package path above.
+const paletteFile = $<HTMLInputElement>("palette-file"),
+  paletteStatus = $("palette-status"),
+  paletteSwatches = $("palette-swatches"),
+  paletteAssign = $("palette-assign"),
+  paletteTarget = $<HTMLSelectElement>("palette-target");
+let chosenSwatch: string | undefined;
+let paletteRead = 0;
+function paletteMessage(text: string, error = false) {
+  paletteStatus.textContent = (error ? "Check the file: " : "") + text;
+  paletteStatus.classList.toggle("error", error);
+}
+function clearPalette() {
+  paletteRead += 1;
+  paletteSwatches.replaceChildren();
+  paletteAssign.hidden = true;
+  chosenSwatch = undefined;
+  paletteMessage("");
+}
+// A file input fires `input` as well as `change`; keep it out of the settings
+// form's render debounce until a swatch is deliberately applied.
+paletteFile.addEventListener("input", (event) => event.stopPropagation());
+paletteTarget.addEventListener("input", (event) => event.stopPropagation());
+paletteFile.addEventListener("change", async () => {
+  const file = paletteFile.files?.[0];
+  paletteFile.value = "";
+  clearPalette();
+  const read = paletteRead;
+  if (!file) return;
+  if (file.size > MAX_PALETTE_BYTES) {
+    paletteMessage("Choose a palette under 32 KiB.", true);
+    return;
+  }
+  let swatches: string[];
+  try {
+    swatches = parseStudioPalette(await file.text());
+  } catch (error) {
+    if (read !== paletteRead) return;
+    paletteMessage(
+      error instanceof Error
+        ? error.message
+        : "That palette could not be read.",
+      true,
+    );
+    return;
+  }
+  if (read !== paletteRead) return;
+  for (const hex of swatches) {
+    const swatch = document.createElement("button");
+    swatch.type = "button";
+    swatch.className = "swatch secondary";
+    swatch.setAttribute("aria-pressed", "false");
+    swatch.setAttribute("aria-label", `Choose palette colour ${hex}`);
+    const chip = document.createElement("span");
+    chip.className = "swatch-chip";
+    chip.style.backgroundColor = hex;
+    const caption = document.createElement("span");
+    caption.className = "swatch-hex";
+    caption.textContent = hex;
+    swatch.append(chip, caption);
+    swatch.addEventListener("click", () => {
+      for (const other of paletteSwatches.querySelectorAll("button"))
+        other.setAttribute("aria-pressed", String(other === swatch));
+      chosenSwatch = hex;
+      paletteAssign.hidden = false;
+      paletteMessage(`Selected ${hex}. Choose a target colour, then apply.`);
+    });
+    paletteSwatches.append(swatch);
+  }
+  paletteMessage(
+    `${swatches.length} colour${swatches.length === 1 ? "" : "s"} imported. Nothing has changed yet.`,
+  );
+});
+$("palette-apply").addEventListener("click", () => {
+  if (!chosenSwatch) {
+    paletteMessage("Choose a swatch before applying.", true);
+    return;
+  }
+  const field = form.elements.namedItem(paletteTarget.value);
+  if (!(field instanceof HTMLInputElement) || field.type !== "color") return;
+  field.value = chosenSwatch;
+  field.dispatchEvent(new Event("input", { bubbles: true }));
+  const target =
+    paletteTarget.selectedOptions[0]?.textContent ?? paletteTarget.value;
+  paletteMessage(
+    `${chosenSwatch} applied to ${target}. Review the regenerated files; nothing was saved automatically.`,
+  );
+});
 void sample();
