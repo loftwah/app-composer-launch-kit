@@ -205,7 +205,11 @@ for (const role of ["portrait", "banner"] as const) {
     details.append(l);
   }
   $("crop-controls").append(details);
-  $<HTMLInputElement>(role).addEventListener("change", async (event) => {
+  const picker = $<HTMLInputElement>(role);
+  // The picker validates its own change. Its native input event must not
+  // queue a settings render before that change can keep the ready card.
+  picker.addEventListener("input", (event) => event.stopPropagation());
+  picker.addEventListener("change", async (event) => {
     const el = event.target as HTMLInputElement,
       file = el.files?.[0];
     el.value = "";
