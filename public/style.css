@@ -568,7 +568,11 @@ h2 {
   gap: 14px;
   padding: 12px 0;
   border-bottom: 1px solid var(--line);
-  font-size: 13px;
+  font-size: 0.8125rem;
+}
+.asset-row > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .asset-row small {
   display: block;
@@ -576,8 +580,9 @@ h2 {
   margin-top: 4px;
 }
 .asset-row button {
+  flex-shrink: 0;
   padding: 6px 12px;
-  font-size: 12px;
+  font-size: 0.75rem;
   min-height: 44px;
 }
 .actions {
