@@ -196,7 +196,11 @@ export async function generate(
     progress(`Preparing ${output.purpose.toLowerCase()}…`);
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = output.size;
-    const ctx = canvas.getContext("2d")!;
+    // Use software downsampling for small favicons on both export and reopen.
+    const ctx = canvas.getContext(
+      "2d",
+      output.size <= 48 ? { willReadFrequently: true } : undefined,
+    )!;
     if (output.maskable || output.size === 180 || !s.transparent) {
       ctx.fillStyle = s.background;
       ctx.fillRect(0, 0, output.size, output.size);
