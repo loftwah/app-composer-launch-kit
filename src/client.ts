@@ -515,7 +515,8 @@ for (const button of document.querySelectorAll<HTMLButtonElement>(
   if (kind === "night-signal" || kind === "field-notes")
     button.addEventListener("click", () => void sample(kind));
 }
-$("cancel").addEventListener("click", () => {
+$("cancel").addEventListener("click", (event) => {
+  const returnFocus = document.activeElement === event.currentTarget;
   const pendingRead = reading;
   invalidate();
   clearTimeout(timer);
@@ -532,6 +533,7 @@ $("cancel").addEventListener("click", () => {
         ? "Image preparation cancelled. Your previous image is retained."
         : "Image preparation cancelled. Choose another image or change a control to continue.",
     );
+  if (returnFocus) $("source").focus();
 });
 function exportPackage() {
   if (!files.size) return;
