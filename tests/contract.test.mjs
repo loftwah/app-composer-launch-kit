@@ -238,4 +238,31 @@ test("social copy is never silently replaced by an ellipsis", async () => {
   assert.deepEqual(drawn, []);
   wrap(ctx, "Signal", 0, 0, 300, 24, 1, "#000000");
   assert.deepEqual(drawn, ["Signal"]);
+  drawn.length = 0;
+  wrap(ctx, "One two three", 0, 0, 70, 24, 2, "#000000");
+  assert.deepEqual(drawn, ["One two", "three"]);
+
+  const poster = [],
+    posterCtx = {
+      font: "",
+      fillStyle: "",
+      measureText: (text) => ({ width: Array.from(text).length * 15.1 }),
+      fillText: (text) => poster.push(text),
+    };
+  // Native poster regression: at 510px the subtitle wrapped between "a" and
+  // "ssets"; 15.1px per code point reproduces that exact overflow.
+  wrap(
+    posterCtx,
+    "Icons, profile cards and launch assets",
+    0,
+    0,
+    510,
+    32,
+    3,
+    "#000000",
+  );
+  assert.deepEqual(poster, ["Icons, profile cards and launch", "assets"]);
+  assert.equal(poster.join(" "), "Icons, profile cards and launch assets");
+  for (const line of poster)
+    assert.ok(!line.includes("…") && !line.includes("..."));
 });
