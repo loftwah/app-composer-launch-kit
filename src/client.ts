@@ -14,6 +14,7 @@ import {
 import { zip } from "./archive.js";
 import { MAX_PALETTE_BYTES, parseStudioPalette } from "./palette.js";
 import { descriptionForSource } from "./alt.js";
+import { THEME_KEY, savedTheme } from "./theme.js";
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 const operation =
@@ -645,17 +646,13 @@ function theme(value: string) {
   document.documentElement.dataset.theme = value;
   $("theme").setAttribute("aria-pressed", String(value === "dark"));
 }
-try {
-  theme(
-    localStorage.getItem("launch-kit:theme") === "light" ? "light" : "dark",
-  );
-} catch {}
+theme(savedTheme());
 $("theme").addEventListener("click", () => {
   const next =
     document.documentElement.dataset.theme === "dark" ? "light" : "dark";
   theme(next);
   try {
-    localStorage.setItem("launch-kit:theme", next);
+    localStorage.setItem(THEME_KEY, next);
   } catch {}
 });
 window.addEventListener("pagehide", () => {
