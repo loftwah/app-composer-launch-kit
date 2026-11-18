@@ -48,14 +48,15 @@ let loadingInitialSample = false;
 // untouched fictional sample copy so a different image never inherits it.
 let altIsSampleCopy = true,
   titleIsSampleCopy = true,
-  sourceIsSample = true;
+  sourceIsSample = true,
+  sampleTitle = DEFAULTS.title;
 const altField = form.elements.namedItem("alt"),
   titleField = form.elements.namedItem("title");
 function titleGuidance() {
   if (!(titleField instanceof HTMLInputElement)) return;
   const hint = $("title-hint");
   const text =
-    !sourceIsSample && titleIsSampleCopy && titleField.value === DEFAULTS.title
+    !sourceIsSample && titleIsSampleCopy && titleField.value === sampleTitle
       ? "Still using the sample title. Enter the name for your project."
       : "";
   if (hint.textContent !== text) hint.textContent = text;
@@ -325,6 +326,7 @@ async function choose(
   blob: Blob,
   action: "local" | "sample" | "initial-sample" | "restore" = "local",
   keep = packageReady || reading?.keep === true,
+  preset?: Settings,
 ) {
   if (action !== "initial-sample") loadingInitialSample = false;
   invalidate();
@@ -362,7 +364,8 @@ async function choose(
       action === "initial-sample" ||
       (action === "restore" && sourceIsSample);
     if (action === "sample") {
-      settings = { ...DEFAULTS };
+      settings = { ...(preset ?? DEFAULTS) };
+      sampleTitle = settings.title;
       fill(settings);
       altIsSampleCopy = true;
       titleIsSampleCopy = true;
@@ -406,24 +409,50 @@ async function choose(
     if (reading === token) reading = undefined;
   }
 }
-async function sample(action: "sample" | "initial-sample" = "sample") {
+// Two explicitly fictional starting points, both loaded and decoded through the
+// same path. Night Signal stays the initial sample and the DEFAULTS identity;
+// the wide landscape starts at cover so trying an icon crop on a 1600 × 700
+// image needs no setup. Choosing either resets to that sample's own settings.
+type SampleKind = "night-signal" | "field-notes";
+const SAMPLES: Record<SampleKind, { url: string; settings: Settings }> = {
+  "night-signal": {
+    url: "/brand/night-signal-20261023.png",
+    settings: DEFAULTS,
+  },
+  "field-notes": {
+    url: "/examples/field-landscape.png",
+    settings: {
+      ...DEFAULTS,
+      title: "Field Notes",
+      subtitle: "Small journeys. Wide horizons.",
+      alt: "Field Notes, a fictional walking journal, with a wide geometric green landscape.",
+      fit: "cover",
+      background: "#f7ecd7",
+      accent: "#934025",
+      ink: "#24272b",
+    },
+  },
+};
+async function sample(
+  kind: SampleKind,
+  action: "sample" | "initial-sample" = "sample",
+) {
   loadingInitialSample = action === "initial-sample";
   const keep = packageReady || reading?.keep === true;
   invalidate();
   clearTimeout(timer);
-  const sampleRevision = revision;
+  const sampleRevision = revision,
+    { url, settings: preset } = SAMPLES[kind];
   sourceMessage();
   try {
-    const response = await fetch("/brand/night-signal-20261023.png", {
-      signal: controller.signal,
-    });
+    const response = await fetch(url, { signal: controller.signal });
     if (!response.ok)
       throw Error(
         "The sample is unavailable. Choose a local image to continue.",
       );
     const blob = await response.blob();
     if (sampleRevision !== revision) return;
-    await choose(blob, action, keep);
+    await choose(blob, action, keep, preset);
   } catch (error) {
     if (sampleRevision === revision) {
       const restored = restorePackage(keep),
@@ -478,7 +507,13 @@ drop.addEventListener("drop", (e) => {
   }
   void choose(e.dataTransfer.files[0]);
 });
-$("sample").addEventListener("click", () => void sample());
+for (const button of document.querySelectorAll<HTMLButtonElement>(
+  "[data-sample]",
+)) {
+  const kind = button.dataset.sample;
+  if (kind === "night-signal" || kind === "field-notes")
+    button.addEventListener("click", () => void sample(kind));
+}
 $("cancel").addEventListener("click", () => {
   const pendingRead = reading;
   invalidate();
@@ -758,4 +793,4 @@ function revealStudioPalette() {
 }
 revealStudioPalette();
 window.addEventListener("hashchange", revealStudioPalette);
-void sample("initial-sample");
+void sample("night-signal", "initial-sample");
