@@ -22,7 +22,7 @@ pnpm render public/examples/river-typography.json output/comparison --compare
 
 External requests are blocked **before the first page load**. Only that owned loopback origin is permitted, including the bundled font. This proves processing and local-server loading without external services after dependencies are installed. The hosted website needs its initial network load. Offline relaunch, a service worker and installability are not claimed.
 
-Reproducibility is scoped to Launch Kit renderer 1.0.0, the bundled font digest in the recipe, and the tested Playwright 1.62.1 / Chromium 151.0.7922.34. PNG container bytes across other browser engines or versions are not promised. Repeating the same recipe, source bytes and tested browser version is checked by comparing actual encoded output hashes.
+Reproducibility is scoped to Launch Kit renderer 1.0.0, the bundled font digest in the recipe, and the tested Playwright 1.62.1 / Chromium 151.0.7922.34. PNG container bytes across other browser engines or versions are not promised. Repeating the same recipe, source bytes and tested browser version is checked by comparing actual encoded output hashes. Replaying the bundled fictional sample with Playwright 1.65.1 and Chromium 159.0.8154.6 also produced the verified PNG bytes.
 
 ## The portable specification
 
