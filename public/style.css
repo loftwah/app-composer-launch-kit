@@ -205,6 +205,7 @@ aside {
 }
 .source .file-button {
   width: 100%;
+  font-size: max(1rem, 1em);
 }
 .file-button {
   position: relative;
@@ -699,7 +700,7 @@ footer {
   }
   .source .file-button {
     align-self: start;
-    font-size: 13px;
+    font-size: max(1rem, 1em);
     max-width: 150px;
   }
   .source h2 {
