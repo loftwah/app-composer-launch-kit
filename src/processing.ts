@@ -99,6 +99,11 @@ function draw(
   );
   ctx.restore();
 }
+function lastWhitespace(line: string): number {
+  for (let i = line.length - 1; i >= 0; i--)
+    if (/\s/.test(line[i] ?? "")) return i;
+  return -1;
+}
 export function wrap(
   ctx: CanvasRenderingContext2D,
   text: string,
@@ -117,11 +122,22 @@ export function wrap(
     rows = [];
     let line = "";
     for (const char of Array.from(text)) {
-      const candidate = line + char;
-      if (line && ctx.measureText(candidate).width > width) {
-        rows.push(line.trimEnd());
-        line = char.trimStart();
-      } else line = candidate;
+      let candidate = line + char;
+      // Prefer the last word boundary; only an individually overwide token
+      // falls back to the code-point break below.
+      while (line && ctx.measureText(candidate).width > width) {
+        const boundary = /\s/u.test(char) ? line.length : lastWhitespace(line);
+        if (boundary > 0) {
+          rows.push(line.slice(0, boundary).trimEnd());
+          line = line.slice(boundary).trimStart();
+          candidate = (line + char).trimStart();
+        } else {
+          rows.push(line.trimEnd());
+          line = "";
+          candidate = char.trimStart();
+        }
+      }
+      line = candidate;
     }
     if (line) rows.push(line);
     if (rows.length <= lines || font === 22) {
