@@ -45,6 +45,11 @@ header nav [aria-current] {
 #profile-controls input[type="file"]::file-selector-button {
   font: inherit;
 }
+#portrait-info,
+#banner-info {
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
 #preset-list {
   display: grid;
   gap: 10px;
