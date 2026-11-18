@@ -78,6 +78,8 @@ const paths = [
     (name) => `/brand/apps/${name}-small-20261018.webp`,
   ),
   "/brand/apps/ldraw-tile-c9c2339a1296-d2e0dc4b-r2-96.webp",
+  "/brand/apps/ldraw-tile-fa7a2ab6171c-010cfbd2-r2-96.webp",
+  "/brand/apps/media-studio-launcher-20261118.webp",
   "/release.json",
   "/build.json",
   "/",
