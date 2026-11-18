@@ -8,7 +8,7 @@ Choose a treatment, enter exact public words, inspect the actual encoded PNG, th
 
 ## One agent command
 
-Use the repository's pinned Node 22 and pnpm 12.8.1. Initial setup requires access to the package registry and browser distribution:
+Use the repository's pinned Node 22 and pnpm 12.21.0. Initial setup requires access to the package registry and browser distribution:
 
 ```sh
 pnpm install --frozen-lockfile
