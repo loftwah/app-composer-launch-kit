@@ -79,7 +79,10 @@ test("the local Apps menu controller is the reviewed Composer distribution with 
   );
   const code = launcher.toString("utf8");
   const imageTask = code.match(/\{ name: "Edit images", [^\n]+/)?.[0] ?? "";
-  assert.match(imageTask, /href: "https:\/\/media\.loftwah\.com\/tools\/images", icon: "tool"/);
+  assert.match(
+    imageTask,
+    /href: "https:\/\/media\.loftwah\.com\/tools\/images", icon: "tool"/,
+  );
   assert.match(imageTask, /aliases: \[[^\]]*"sprite atlas", "sprite sheet"/);
   assert.match(
     code,
