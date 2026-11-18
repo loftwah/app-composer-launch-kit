@@ -364,3 +364,85 @@ test("profile controls receive real pointer clicks and recipe picker stays insid
     }
   });
 });
+
+test("profile uses the saved theme and exposes the real toggle state", async () => {
+  await withRenderer(async ({ page, origin }) => {
+    const state = () =>
+      page.evaluate(() => {
+        const button = document.getElementById("theme");
+        return {
+          theme: document.documentElement.dataset.theme,
+          label: button?.getAttribute("aria-label"),
+          pressed: button?.getAttribute("aria-pressed"),
+          saved: localStorage.getItem("launch-kit:theme"),
+        };
+      });
+
+    // Dark is the default, announced as a pressed dark-theme toggle.
+    await page.goto(origin + "/profile.html");
+    assert.deepEqual(await state(), {
+      theme: "dark",
+      label: "Dark theme",
+      pressed: "true",
+      saved: null,
+    });
+
+    // A click changes the announced state and saves the shared preference.
+    await page.getByRole("button", { name: "Dark theme" }).click();
+    assert.deepEqual(await state(), {
+      theme: "light",
+      label: "Dark theme",
+      pressed: "false",
+      saved: "light",
+    });
+
+    // Reopening honours the saved choice instead of returning to dark.
+    await page.reload();
+    assert.deepEqual(await state(), {
+      theme: "light",
+      label: "Dark theme",
+      pressed: "false",
+      saved: "light",
+    });
+
+    // The editor and Help read the very same key.
+    await page.goto(origin + "/help.html");
+    assert.equal(
+      await page.evaluate(() => document.documentElement.dataset.theme),
+      "light",
+    );
+    await page.goto(origin + "/");
+    assert.equal(
+      await page.evaluate(() => document.documentElement.dataset.theme),
+      "light",
+    );
+    assert.equal(
+      await page
+        .getByRole("button", { name: "Dark theme" })
+        .getAttribute("aria-pressed"),
+      "false",
+    );
+  });
+});
+
+test("profile keeps dark and a working toggle when storage is denied", async () => {
+  await withRenderer(async ({ page, origin }) => {
+    await page.context().addInitScript(() => {
+      Object.defineProperty(window, "localStorage", {
+        configurable: true,
+        get() {
+          throw new DOMException("Storage denied", "SecurityError");
+        },
+      });
+    });
+    const denied = await page.context().newPage();
+    await denied.goto(origin + "/profile.html");
+    const theme = () =>
+      denied.evaluate(() => document.documentElement.dataset.theme);
+    assert.equal(await theme(), "dark");
+    const toggle = denied.getByRole("button", { name: "Dark theme" });
+    await toggle.click();
+    assert.equal(await theme(), "light");
+    assert.equal(await toggle.getAttribute("aria-pressed"), "false");
+  });
+});

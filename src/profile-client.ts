@@ -8,6 +8,7 @@ import {
 } from "./profile.js";
 import { decodeSource } from "./processing.js";
 import { zip } from "./archive.js";
+import { THEME_KEY, savedTheme, type Theme } from "./theme.js";
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 const form = $<HTMLFormElement>("profile-controls");
@@ -595,10 +596,22 @@ $("copy-instructions").onclick = async () => {
       "Select and copy the instructions below";
   }
 };
-$("theme").onclick = () => {
-  document.documentElement.dataset.theme =
-    document.documentElement.dataset.theme === "light" ? "dark" : "light";
-};
+// Same shared preference and toggle semantics as the editor and Help: dark is
+// the design default, an explicit saved light choice is honoured, and a denied
+// storage read or write still leaves a complete, readable page.
+function theme(value: Theme) {
+  document.documentElement.dataset.theme = value;
+  $("theme").setAttribute("aria-pressed", String(value === "dark"));
+}
+theme(savedTheme());
+$("theme").addEventListener("click", () => {
+  const next: Theme =
+    document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  theme(next);
+  try {
+    localStorage.setItem(THEME_KEY, next);
+  } catch {}
+});
 window.addEventListener("pagehide", () => {
   retireExample();
   controller.abort();
