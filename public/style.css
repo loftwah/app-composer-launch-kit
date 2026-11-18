@@ -916,6 +916,29 @@ button.text-button:hover {
   outline-color: #9b2f00;
 }
 
+/* Help brand assets: exact same-origin files, shown at a useful size. */
+.brand-assets figure {
+  margin: 16px 0 0;
+  max-width: 840px;
+}
+.brand-assets img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  background: var(--surface);
+}
+.brand-assets figcaption {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.brand-assets ul {
+  margin: 16px 0 0;
+  padding-left: 20px;
+  line-height: 1.7;
+}
+
 /* Optional local Media Studio palette import, beside Identity colours. */
 .palette-import {
   clear: both;
