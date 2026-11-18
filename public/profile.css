@@ -190,9 +190,12 @@ header nav [aria-current] {
   }
   .live-preview .actions > * {
     width: auto;
-    flex: 1;
-    font-size: 12px;
+    flex: 1 1 5rem;
+    min-width: 0;
+    min-height: 44px;
+    font-size: 0.75rem;
     padding-inline: 10px;
+    overflow-wrap: anywhere;
   }
   .example-gallery {
     grid-template-columns: 1fr;
